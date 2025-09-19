@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/MrIceRam/BotForTwitch#readme",
   "dependencies": {
-    "comfy.js": "^1.1.29"
+    "comfy.js": "^1.1.29",
+    "dotenv": "^17.2.2"
   }
 }
