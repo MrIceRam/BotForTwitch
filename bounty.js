@@ -17,7 +17,7 @@ async function createRevarte(){
     is_global_cooldown_enabled: false,
     global_cooldown_seconds: 0,
     should_redemptions_skip_request_queue: true
-} );}
+});}
 
 async function dellRevarte(){
     await ComfyJS.DeleteChannelReward( clientId, customReward.id );
