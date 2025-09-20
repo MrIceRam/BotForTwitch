@@ -11,8 +11,13 @@ ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
 //         ComfyJS.Say("da")
 //     }
 // }
-// ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
-//     console.log( user + " redeemed " + reward + " for " + cost );} // юзер + название + цена
+ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
+    console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
+    if (extra.reward.id == "1d04d1f0-215a-419b-9702-5171334ed879"){
+        PythonShell.run('reverse.py')
+    }
+} // юзер + название + цена
+
 
 //ComfyJS.onConnected = async(address, port, isFirstConnect) => {
 // let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его

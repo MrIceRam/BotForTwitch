@@ -1,8 +1,7 @@
 require('dotenv').config();
 var ComfyJS = require("comfy.js");
 
-async function createRevarte(){
-    
+async function createRevarte(){  
     let customReward = await ComfyJS.CreateChannelReward(process.env.CLIEN, {
     title: "Test Reward",
     prompt: "Test Description",
