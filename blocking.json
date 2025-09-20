@@ -1,0 +1,15 @@
+{
+    "blockedkey": "a",
+    "key_block": "space",
+    "holdkey": "a",
+    "presskey": "a",
+    "presskey_timeout_enabled": "True",
+    "presskey_timeout": "3",
+    "mouse_block": "",
+    "reverse": "reverse",
+    "block": "True",
+    "unblock": "False",
+    "reversetimer": "False",
+    "blocktimer": "False",
+    "holdtimer": "False"
+}
