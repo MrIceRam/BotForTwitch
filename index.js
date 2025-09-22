@@ -27,7 +27,7 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
 //}
 
 async function DDnet(message){
-    PythonShell.run('ddnet_pipe.py',{ args: ["say /invite", message] }, (err, results) => {
+    PythonShell.run('ddnet_pipe.py',{ args: [`say /invite "${message}"`] }, (err, results) => {
       if (err) throw err;
       console.log('Результаты выполнения Python-скрипта:', results);
     });
