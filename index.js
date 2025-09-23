@@ -40,11 +40,23 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
 // }
 // }
 
+async function Nike(x) {
+  for (i = 0; i<str.length(x);i++){
+    if(x[i]=== ";"){
+      a = false;
+      break;
+    }
+  }
+  return a;
+}
+
 async function DDnet(message){
+  if(Nike(message)){
     await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo "${message}"`]}, (err, results) => {
         if (err) throw err;
         console.log('Результаты выполнения Python-скрипта:', results);
     });
+  }
 }
 
 async function init()
