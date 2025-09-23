@@ -42,12 +42,7 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
 
 async function Nike(x) {
     let a = true;
-    for (let i = 0; i<x.length;i++){
-        if(x[i]=== ";"){
-        a = false;
-        break;
-        }
-    }
+    if(x.includes(";")){ a = false }
     return a;
 }
 
