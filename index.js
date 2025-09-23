@@ -53,10 +53,15 @@ async function Nike(x) {
 
 async function DDnetInvite(message, Sender=null){
   if(await Nike(message)){
-      await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
-          if (err) throw err;
-          console.log('Результаты выполнения Python-скрипта:', results);
-      });
+      try {
+          await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
+              if (err) throw err;
+              console.log('Результаты выполнения Python-скрипта:', results);
+          });
+      }
+      catch(err){
+          console.log(err);
+      }
   }
   else
      console.log("; blocked");
