@@ -3,6 +3,7 @@ require('dotenv').config();
 const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
 const answer = require("./commands/answer.js");
+const needed = require("./commands/Needed.js");
 ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
   if( command === "invite" ) {  DDnet(message);}}
 
@@ -46,4 +47,24 @@ async function DDnet(message){
     });
 }
 
-ComfyJS.Init(process.env.TWITCHUSER, process.env.OAUTH );
+async function init()
+{
+    const tokensRefreshed = await needed.refreshAllTokens();
+    if (tokensRefreshed)
+        console.log("Tokens refreshed")
+    else
+        console.log('Failed to refresh tokens')
+    ComfyJS.Init(process.env.TWITCHUSER, process.env.OAUTH );
+}
+if(process.env.TWITCHUSER && process.env.OAUTH && process.env.CLIEN && process.env.REFRESH){
+    init()
+}
+else
+{
+    console.log("THere no OAUTH tokens in .env file \n" +
+        "U need that tokens: \n" +
+        "TWITCHUSER= \n" +
+        "OAUTH= \n" +
+        "CLIEN= \n" +
+        "REFRESH= \n")
+}
