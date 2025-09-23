@@ -1,6 +1,4 @@
 require('dotenv').config();
-const ComfyJS = require("comfy.js");
-
 
 function answer(message){
     if(message === "da"){
