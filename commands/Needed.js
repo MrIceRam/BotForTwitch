@@ -31,7 +31,6 @@ async function refreshAllTokens() {
         if(process.env.REFRESH) {
             let refrashtoken = process.env.REFRESH;
             twitchchannelToken = await refrashtokens(refrashtoken);
-            console.log('Channel token refreshed:', twitchchannelToken);
         }
         if(process.env.REFRESH && twitchchannelToken) {
             await updateEnvValue('OAUTH', twitchchannelToken);
@@ -50,7 +49,6 @@ async function refrashtokens(refrashtoken) {
         // Опция timeout задаётся в миллисекундах (10000 = 10 секунд)
         const response = await axios.get(url, { timeout: 10000 });
         if(refrashtoken === process.env.REFRESH){
-            console.log(`Восстановление ${process.env.OAUTH} :`, response.data)
             return response.data.token
         }
     } catch (error) {
