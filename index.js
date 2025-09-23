@@ -5,7 +5,7 @@ const { PythonShell } = require('python-shell');
 const answer = require("./commands/answer.js");
 const needed = require("./commands/Needed.js");
 ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
-  if( command === "invite" ) {  DDnet(message);}}
+  if( command === "invite" ) {  DDnetInvite(message, user);}}
 
 
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
@@ -51,9 +51,9 @@ async function Nike(x) {
     return a;
 }
 
-async function DDnet(message){
+async function DDnetInvite(message, Sender=null){
   if(await Nike(message)){
-      await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo "${message}"`]}, (err, results) => {
+      await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
           if (err) throw err;
           console.log('Результаты выполнения Python-скрипта:', results);
       });
