@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/MrIceRam/BotForTwitch#readme",
   "dependencies": {
+    "axios": "^1.12.2",
     "comfy.js": "^1.1.29",
     "dotenv": "^17.2.2",
     "python-shell": "^5.0.0"
