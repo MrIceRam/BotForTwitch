@@ -1,8 +1,8 @@
-const Bounty = require('./bounty.js');
+const Bounty = require('./commands/bounty.js');
 require('dotenv').config();
 const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
-const answer = require("./answer.js");
+const answer = require("./commands/answer.js");
 ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
   if( command === "invite" ) {  DDnet(message);}}
 

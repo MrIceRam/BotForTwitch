@@ -1,4 +1,3 @@
-const Bounty = require('./bounty.js');
 require('dotenv').config();
 const ComfyJS = require("comfy.js");
 
