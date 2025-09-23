@@ -3,9 +3,8 @@ require('dotenv').config();
 const ComfyJS = require("comfy.js");
 
 
-async function answer(message){
+function answer(message){
     if(message === "da"){
-        console.log("answer")
         return "хуй";
     }
     else{

@@ -7,23 +7,21 @@ ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
   if( command === "invite" ) {  DDnet(message);}}
 
 
-// ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
-//     x = answer.answer(message);
-//     if (x == 0){
-//       console.log("eerr");
+ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
+    let x = answer.answer(message);
 
-//     }
-//     else{
-//       console.log("wwee");
-//       ComfyJS.Say(x);
-//     }
+    if (x !== 0) {
+        console.log(`Written answer ${x}`);
+        ComfyJS.Say(x);
+    }
 
 
-  // if(message.startsWith("!invite")) // message === "teststr" for full
+    // if(message.startsWith("!invite")) // message === "teststr" for full
     // {
     //     ComfyJS.Say("da")
     // }
 //}
+}
 
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
