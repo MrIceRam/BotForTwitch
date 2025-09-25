@@ -7,22 +7,19 @@ const needed = require("./commands/Needed.js");
 ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
   if( command === "invite" ) {  DDnetInvite(message, user);}}
 
-
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     let x = answer.answer(message);
-
     if (x !== 0) {
         console.log(`Written answer ${x}`);
         ComfyJS.Say(x);
     }
-
+}
 
     // if(message.startsWith("!invite")) // message === "teststr" for full
     // {
     //     ComfyJS.Say("da")
     // }
-//}
-}
+    //}
 
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
@@ -32,7 +29,6 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     }
 } // юзер + название + цена
 
-
 // ComfyJS.onConnected = async(address, port, isFirstConnect) => {
 //  let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его
 // if (channelRewards[0].title != "Test Reward"){
@@ -40,7 +36,7 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
 // }
 // }
 
-async function Nike(x) {
+async function Nike(x){ // just see ';'
     let a = true;
     if(x.includes(";")){ a = false }
     return a;
@@ -49,7 +45,7 @@ async function Nike(x) {
 async function DDnetInvite(message, Sender=null){
   if(await Nike(message)){
       try {
-          await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
+          await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo ==>"${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
               if (err) throw err;
               console.log('Результаты выполнения Python-скрипта:', results);
           });
@@ -62,8 +58,7 @@ async function DDnetInvite(message, Sender=null){
      console.log("; blocked");
 }
 
-async function init()
-{
+async function init(){
     const tokensRefreshed = await needed.refreshAllTokens();
     if (tokensRefreshed)
         console.log("Tokens refreshed")
@@ -74,8 +69,7 @@ async function init()
 if(process.env.TWITCHUSER && process.env.OAUTH && process.env.CLIEN && process.env.REFRESH){
     init()
 }
-else
-{
+else{
     console.log("THere no OAUTH tokens in .env file \n" +
         "U need that tokens: \n" +
         "TWITCHUSER= \n" +
