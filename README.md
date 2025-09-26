@@ -1,5 +1,3 @@
 ﻿# BotForTwitch
-TWITCHUSER = w
-OAUTH = w
-REFRESH = w
-CLIEN = w
+> [!NOTE]
+> Use **node index.js**
