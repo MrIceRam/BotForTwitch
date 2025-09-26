@@ -5,30 +5,19 @@ function random2(max){
 }
 
 function answer(message){
-    if(message === "окак"){
-        return "отак";
-    }
-    if(message === "что за карта"){
-        return "туториал";
-    }
-    if(message === "иди нахуй"){
-        return "0_0";
-    }
-    if(message === "пошел нахуй"){
-        return "0_0";
-    }
-
-     if(message === "сосал"){ //voix return (random2(11) === 0 ? "Да" : "Нет")
-        
-        if(random2(10) == 1){
-            return "да";
-        }else{
-            return "нет";
-        }
-    }
-
-    else{
-        return 0;
+    switch (message) {
+        case "окак":
+            return "отак";
+        case "что за карта":
+            return "туториал";
+        case "иди нахуй":
+            return "0_0";
+        case "пошел нахуй":
+            return "0_0";
+        case "сосал":
+            return (random2(11) === 0 ? "Да" : "Нет")
+        default:
+            return 0;
     }
 }
 module.exports = { answer }
