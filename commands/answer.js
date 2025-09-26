@@ -1,5 +1,9 @@
 require('dotenv').config();
 
+function random2(max){
+    return Math.floor(Math.random() * max);
+}
+
 function answer(message){
     if(message === "окак"){
         return "отак";
@@ -13,6 +17,16 @@ function answer(message){
     if(message === "пошел нахуй"){
         return "0_0";
     }
+
+     if(message === "сосал"){ //voix return (random2(11) === 0 ? "Да" : "Нет")
+        
+        if(random2(10) == 1){
+            return "да";
+        }else{
+            return "нет";
+        }
+    }
+
     else{
         return 0;
     }
