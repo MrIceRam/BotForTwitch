@@ -4,6 +4,7 @@ const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
 const answer = require("./commands/answer.js");
 const needed = require("./commands/Needed.js");
+const { use } = require('react');
 ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
   if( command === "invite" ) {  DDnetInvite(message, user);}}
 
@@ -14,13 +15,11 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
         ComfyJS.Say(x);
     }
 }
-
     // if(message.startsWith("!invite")) // message === "teststr" for full
     // {
     //     ComfyJS.Say("da")
     // }
     //}
-
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
@@ -28,6 +27,11 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
         PythonShell.run('reverse.py')
     }
 } // юзер + название + цена
+
+ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯
+    console.log("фолов " + user);
+    ComfyJS.Say("Привет "+ user_name);
+}
 
 // ComfyJS.onConnected = async(address, port, isFirstConnect) => {
 //  let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его

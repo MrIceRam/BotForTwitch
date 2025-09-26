@@ -17,7 +17,11 @@ function answer(message){
     if(message === "пошел нахуй"){
         return "0_0";
     }
+    if(message === "создатель"){
+        return "MrIceRam";
+    }
 
+    
      if(message === "сосал"){ //voix return (random2(11) === 0 ? "Да" : "Нет")
         
         if(random2(10) == 1){
