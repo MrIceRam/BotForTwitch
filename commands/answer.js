@@ -20,7 +20,7 @@ function answer(message){
     if(message === "создатель"){
         return "MrIceRam";
     }
-
+    
     
      if(message === "сосал"){ //voix return (random2(11) === 0 ? "Да" : "Нет")
         

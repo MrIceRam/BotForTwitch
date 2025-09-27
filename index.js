@@ -4,9 +4,15 @@ const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
 const answer = require("./commands/answer.js");
 const needed = require("./commands/Needed.js");
-const { use } = require('react');
-ComfyJS.onCommand = ( user, command, message, flags, extra ) => {    // !test
-  if( command === "invite" ) {  DDnetInvite(message, user);}}
+
+
+
+ComfyJS.onCommand = async( user, command, message, flags, extra ) => {    // !test
+if( command === "invite" || "invitе" || "инвайт" || "инвит" ) {  DDnetInvite(message, user);}
+if( command === ("point" || "points") ) {    
+    ComfyJS.Say(await DDnetPoint(message));
+}  
+}
 
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     let x = answer.answer(message);
@@ -28,10 +34,10 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     }
 } // юзер + название + цена
 
-ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯
-    console.log("фолов " + user);
-    ComfyJS.Say("Привет "+ user_name);
-}
+// ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
+//     console.log("фолов " + user);
+//     ComfyJS.Say("Привет "+ user);
+// }
 
 // ComfyJS.onConnected = async(address, port, isFirstConnect) => {
 //  let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его
@@ -57,10 +63,23 @@ async function DDnetInvite(message, Sender=null){
       catch(err){
           console.log(err);
       }
-  }
-  else
-     console.log("; blocked");
+    }
+    else
+        console.log("лох перезапуск (;)");
 }
+
+async function DDnetPoint(message, Sender=null){ // POINT DDNET
+    try {
+        await PythonShell.run('./commands/point.py', {args: [`${message}`]}, (err, results) => {
+            if (err) throw err;
+            return(`${message} points: ${results}`);
+        });
+    }
+    catch(err){
+        console.log("err point");
+    }
+}
+
 
 async function init(){
     const tokensRefreshed = await needed.refreshAllTokens();
