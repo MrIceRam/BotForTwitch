@@ -78,6 +78,11 @@ def send_command(pipe_name, command):
         return False
 
 def main():
+    # Force stdin and stdout to use UTF-8 encoding, especially on Windows
+    if os.name == 'nt':
+        sys.stdin.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding='utf-8')
+
     parser = argparse.ArgumentParser(description='Send commands to DDNet client through a named pipe')
     parser.add_argument('command', nargs='+', help='The command to send to DDNet')
     parser.add_argument('--pipe', default='ddnet_client', help='Name of the pipe (default: ddnet_client)')

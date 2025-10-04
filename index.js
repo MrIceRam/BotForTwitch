@@ -7,11 +7,17 @@ const needed = require("./commands/Needed.js");
 
 
 
-ComfyJS.onCommand = async( user, command, message, flags, extra ) => {    // !test
-if( command === "invite" || "invitе" || "инвайт" || "инвит" ) {  DDnetInvite(message, user);}
-if( command === ("point" || "points") ) {    
-    ComfyJS.Say(await DDnetPoint(message));
-}  
+ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
+    const inviteCommands = ["invite", "invitе", "инвайт", "инвит"];
+    const pointCommands = ["point", "points"];
+
+    if( inviteCommands.includes(command) ) {
+        DDnetInvite(message, user);
+    }
+    if( pointCommands.includes(command) ) {
+        const Points = await DDnetPoint(message)
+        ComfyJS.Say(Points);
+    }
 }
 
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
@@ -68,15 +74,22 @@ async function DDnetInvite(message, Sender=null){
         console.log("лох перезапуск (;)");
 }
 
-async function DDnetPoint(message, Sender=null){ // POINT DDNET
+async function DDnetPoint(message){
+    console.log(`Attempting to get points for: ${message}`);
     try {
-        await PythonShell.run('./commands/point.py', {args: [`${message}`]}, (err, results) => {
-            if (err) throw err;
-            return(`${message} points: ${results}`);
-        });
+        // PythonShell.run returns a promise that resolves to an array of output lines
+        const results = await PythonShell.run('./commands/point.py', {args: [`${message}`]});
+
+        // Join the array of lines into a single string for output
+        const pointsOutput = results.join(' ');
+
+        // Return the formatted message string
+        return `${message} points: ${pointsOutput}`;
     }
     catch(err){
-        console.log("err point");
+        console.error("Error in DDnetPoint while running point.py:", err);
+        // Ensure a string is always returned to prevent the TypeError in ComfyJS.Say()
+        return `Sorry, I could not check points for ${message} right now.`;
     }
 }
 
