@@ -80,6 +80,29 @@ async function DDnetPoint(message, Sender=null){ // POINT DDNET
     }
 }
 
+async function DDnetReklama(){ // POINT DDNET
+    try {
+          await PythonShell.run('ddnet_pipe.py', {args: [`say sss`]}, (err, results) => {
+              if (err) throw err;
+              //console.log('xyu')
+              console.log('Результаты выполнения Python-скрипта:', results);
+          });
+      }
+      catch(err){
+          console.log(err);
+      }
+}
+
+setInterval(
+  () => {
+    console.log('Hello after 300 seconds');//ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!
+    DDnetReklama()                     
+  },
+  3 * 1000
+);
+
+
+
 
 async function init(){
     const tokensRefreshed = await needed.refreshAllTokens();
