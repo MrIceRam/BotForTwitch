@@ -4,19 +4,31 @@ const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
 const answer = require("./commands/answer.js");
 const needed = require("./commands/Needed.js");
-
+const DDMap = require("./commands/DDMap.js");
 
 
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе", "инвайт", "инвит"];
     const pointCommands = ["point", "points"];
-
+    const MapCommands = ["map", "maps", "карта", "мапа", "мапка"];
+    
     if( inviteCommands.includes(command) ) {
         DDnetInvite(message, user);
     }
     if( pointCommands.includes(command) ) {
-        const Points = await DDnetPoint(message)
+        const Points = await DDnetPoint(message);
         ComfyJS.Say(Points);
+    }
+    if( MapCommands.includes(command) ) {
+        const Map = await DDnetMap(message || "IceRam");
+        if (typeof Map === 'string') {
+          let template = 'Игрок {nickname} не найден ни на одном сервере';
+          let text = template.replace('{nickname}', message || "IceRam");
+          ComfyJS.Say(text);
+          return;
+        }
+        const player = Map[0]; 
+        ComfyJS.Say("сейчас " + player.map + " ip: " + player.ip);
     }
 }
 
@@ -95,7 +107,7 @@ async function DDnetPoint(message){
 
 async function DDnetReklama(){ // POINT DDNET
     try {
-          await PythonShell.run('ddnet_pipe.py', {args: [`say sss`]}, (err, results) => {
+          await PythonShell.run('ddnet_pipe.py', {args: [`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`]}, (err, results) => {
               if (err) throw err;
               //console.log('xyu')
               console.log('Результаты выполнения Python-скрипта:', results);
@@ -108,13 +120,22 @@ async function DDnetReklama(){ // POINT DDNET
 
 setInterval(
   () => {
-    console.log('Hello after 300 seconds');//ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!
-    DDnetReklama()                     
+    console.log('300 seconds');//ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!
+    DDnetReklama();                    
   },
-  3 * 1000
+  300 * 1000
 );
 
+async function DDnetMap(message){
+    try {
 
+    const переменная = await DDMap.findPlayerAndMap(message);
+    return переменная
+    }
+      catch(err){
+          console.log(err);
+    }
+}
 
 
 async function init(){
