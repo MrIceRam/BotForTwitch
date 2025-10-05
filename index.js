@@ -38,12 +38,25 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
         console.log(`Written answer ${x}`);
         ComfyJS.Say(x);
     }
+
+    // выводит из чата твича в чат ddnet 
+    try { 
+              PythonShell.run('ddnet_pipe.py', {args: [`echo "${message}"`]}, (err, results) => {
+              if (err) throw err;
+              //console.log('xyu')
+              console.log('Результаты выполнения Python-скрипта:', results);
+          });
+      }
+      catch(err){
+          console.log(err);
+      }
 }
-    // if(message.startsWith("!invite")) // message === "teststr" for full
+
+    // if(message.startsWith("!invite")){ // message === "teststr" for full
     // {
     //     ComfyJS.Say("da")
     // }
-    //}
+    // }
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
