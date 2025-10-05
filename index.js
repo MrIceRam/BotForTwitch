@@ -38,18 +38,20 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
         console.log(`Written answer ${x}`);
         ComfyJS.Say(x);
     }
+    //DDnetMessage(message, user);// выводит из чата твича в чат ddnet 
 
     // выводит из чата твича в чат ddnet 
-    try { 
-              PythonShell.run('ddnet_pipe.py', {args: [`echo "${message}"`]}, (err, results) => {
-              if (err) throw err;
-              //console.log('xyu')
-              console.log('Результаты выполнения Python-скрипта:', results);
-          });
-      }
-      catch(err){
-          console.log(err);
-      }
+    // try { 
+    //           PythonShell.run('ddnet_pipe.py', {args: [`echo "${message}"`]}, (err, results) => {
+    //           if (err) throw err;
+    //           //console.log('xyu')
+    //           console.log('Результаты выполнения Python-скрипта:', results);
+    //       });
+    //   }
+    //   catch(err){
+    //       console.log(err);
+    //   }
+
 }
 
     // if(message.startsWith("!invite")){ // message === "teststr" for full
@@ -82,6 +84,22 @@ async function Nike(x){ // just see ';'
     if(x.includes(";")){ a = false }
     return a;
 }
+
+// async function DDnetMessage(message, Sender=null){ // выводит из чата твича в чат ddnet 
+//   if(await Nike(message)){
+//       try {
+//           await PythonShell.run('ddnet_pipe.py', {args: [`echo ==> "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
+//               if (err) throw err;
+//               console.log('Результаты выполнения Python-скрипта:', results);
+//           });
+//       }
+//       catch(err){
+//           console.log(err);
+//       }
+//     }
+//     else
+//         console.log("лох перезапуск (;)");
+// }
 
 async function DDnetInvite(message, Sender=null){
   if(await Nike(message)){
