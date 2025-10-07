@@ -10,14 +10,20 @@ function answer(message){
             return "отак";
         case "что за карта":
             return "туториал";
+        case "что за карта?":
+            return "туториал";
         case "иди нахуй":
             return "0_0";
         case "пошел нахуй":
             return "0_0";
         case "создатель":
-            return "MrIceRam and voix";
+            return "MrIceRam and 1Voix1";
+        case "пизда":
+            return "в анусе звезда";
         case "сосал":
-            return (random2(11) === 0 ? "Да" : "Нет")
+            return (random2(21) === 0 ? "Да" : "Нет")
+        case "сосал?":
+            return (random2(21) === 0 ? "Да" : "Нет") 
         default:
             return 0;
     }
