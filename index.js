@@ -11,6 +11,7 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе", "инвайт", "инвит"];
     const pointCommands = ["point", "points"];
     const MapCommands = ["map", "maps", "карта", "мапа", "мапка"];
+    const Roll = ["roll"];
     
     if( inviteCommands.includes(command) ) {
         DDnetInvite(message, user);
@@ -18,6 +19,9 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     if( pointCommands.includes(command) ) {
         const Points = await DDnetPoint(message);
         ComfyJS.Say(Points);
+    }
+    if( Roll.includes(command) ) {
+        ComfyJS.Say("roll: " + Math.floor(Math.random() * 101));
     }
     if( MapCommands.includes(command) ) {
         const Map = await DDnetMap(message || "IceRam");
@@ -81,7 +85,7 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
 
 async function Nike(x){ // just see ';'
     let a = true;
-    if(x.includes(";" || "[" || "]"|| "{"|| "}")){ a = false }
+    if(x.includes(";")){ a = false }
     return a;
 }
 
