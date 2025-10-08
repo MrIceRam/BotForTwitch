@@ -58,10 +58,10 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     }
 } // юзер + название + цена
 
-ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
-    console.log("фолов " + user);
-    ComfyJS.Say("qq @"+ user);
-}
+// ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
+//     console.log("фолов " + user);
+//     ComfyJS.Say("qq @"+ user);
+// }
 
 // ComfyJS.onConnected = async(address, port, isFirstConnect) => {
 //  let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его
