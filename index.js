@@ -42,20 +42,7 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
         console.log(`Written answer ${x}`);
         ComfyJS.Say(x);
     }
-    //DDnetMessage(message, user);// выводит из чата твича в чат ddnet 
-
-    // выводит из чата твича в чат ddnet 
-    // try { 
-    //           PythonShell.run('ddnet_pipe.py', {args: [`echo "${message}"`]}, (err, results) => {
-    //           if (err) throw err;
-    //           //console.log('xyu')
-    //           console.log('Результаты выполнения Python-скрипта:', results);
-    //       });
-    //   }
-    //   catch(err){
-    //       console.log(err);
-    //   }
-
+    DDnetMessage(message, user);// выводит из чата твича в чат ddnet 
 }
 
     // if(message.startsWith("!invite")){ // message === "teststr" for full
@@ -71,10 +58,10 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     }
 } // юзер + название + цена
 
-// ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
-//     console.log("фолов " + user);
-//     ComfyJS.Say("Привет "+ user);
-// }
+ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
+    console.log("фолов " + user);
+    ComfyJS.Say("qq @"+ user);
+}
 
 // ComfyJS.onConnected = async(address, port, isFirstConnect) => {
 //  let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его
@@ -89,26 +76,26 @@ async function Nike(x){ // just see ';'
     return a;
 }
 
-// async function DDnetMessage(message, Sender=null){ // выводит из чата твича в чат ddnet 
-//   if(await Nike(message)){
-//       try {
-//           await PythonShell.run('ddnet_pipe.py', {args: [`echo ==> "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
-//               if (err) throw err;
-//               console.log('Результаты выполнения Python-скрипта:', results);
-//           });
-//       }
-//       catch(err){
-//           console.log(err);
-//       }
-//     }
-//     else
-//         console.log("лох перезапуск (;)");
-// }
+async function DDnetMessage(message, Sender=null){ // выводит из чата твича в чат ddnet 
+  if(await Nike(message)){
+      try {
+          await PythonShell.run('ddnet_pipe.py', {args: [`echo ==> "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
+              if (err) throw err;
+              console.log('Результаты выполнения Python-скрипта:', results);
+          });
+      }
+      catch(err){
+          console.log(err);
+      }
+    }
+    else
+        console.log("лох перезапуск (;)");
+}
 
 async function DDnetInvite(message, Sender=null){
   if(await Nike(message)){
       try {
-          await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo ==>"${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
+          await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo INVITE "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
               if (err) throw err;
               console.log('Результаты выполнения Python-скрипта:', results);
           });
