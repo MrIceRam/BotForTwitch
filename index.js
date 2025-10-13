@@ -5,12 +5,13 @@ const { PythonShell } = require('python-shell');
 const answer = require("./commands/answer.js");
 const needed = require("./commands/Needed.js");
 const DDMap = require("./commands/DDMap.js");
+//const { use } = require('react');
 
 
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе", "инвайт", "инвит"];
     const pointCommands = ["point", "points"];
-    const MapCommands = ["map", "maps", "карта", "мапа", "мапка"];
+    const MapCommands = ["map", "maps", "карта", "мапа", "мапка","что за карта", "что за карта?"];
     const Roll = ["roll"];
     
     if( inviteCommands.includes(command) ) {
@@ -52,9 +53,14 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     // }
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
-    console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
+    //console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
     if (extra.reward.id === "1d04d1f0-215a-419b-9702-5171334ed879"){
         PythonShell.run('reverse.py')
+    }
+    if (extra.reward.id === "bc2a2a91-e426-4a8a-a35d-31286c759288"){
+        console.log(user + "фоловнулся")
+        ComfyJS.Say("йоу спасибо за фоллов" + user)
+        DDnetConsole("say" + user + "крутой")
     }
 } // юзер + название + цена
 
@@ -129,15 +135,15 @@ async function DDnetPoint(message){
 
 async function DDnetReklama(){ // POINT DDNET
     try {
-          await PythonShell.run('ddnet_pipe.py', {args: [`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`]}, (err, results) => {
-              if (err) throw err;
-              //console.log('xyu')
-              console.log('Результаты выполнения Python-скрипта:', results);
-          });
-      }
-      catch(err){
-          console.log(err);
-      }
+        await PythonShell.run('ddnet_pipe.py', {args: [`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`]}, (err, results) => {
+            if (err) throw err;
+            //console.log('xyu')
+            console.log('Результаты выполнения Python-скрипта:', results);
+        });
+    }
+    catch(err){
+        console.log(err);
+    }
 }
 
 setInterval(
@@ -159,6 +165,17 @@ async function DDnetMap(message){
     }
 }
 
+async function DDnetConsole(x) {
+    try {
+        await PythonShell.run('ddnet_pipe.py', {args: x}, (err, results) => {
+            if (err) throw err;
+            console.log('DDnetConsole good')
+        });
+    }
+    catch(err){
+        console.log(err);
+    }
+}
 
 async function init(){
     const tokensRefreshed = await needed.refreshAllTokens();

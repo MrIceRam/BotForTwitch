@@ -8,10 +8,6 @@ function answer(message){
     switch (message) {
         case "окак":
             return "отак";
-        case "что за карта":
-            return "туториал";
-        case "что за карта?":
-            return "туториал";
         case "иди нахуй":
             return "0_0";
         case "пошел нахуй":
