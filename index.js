@@ -35,6 +35,9 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
         const player = Map[0]; 
         ComfyJS.Say("сейчас " + player.map + " ip: " + player.ip);
     }
+    try {
+        DDnetMessage(message, user);// выводит из чата твича в чат ddnet 
+    } catch (error) {}
 }
 
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
@@ -43,7 +46,11 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
         console.log(`Written answer ${x}`);
         ComfyJS.Say(x);
     }
-    DDnetMessage(message, user);// выводит из чата твича в чат ddnet 
+    try {
+        DDnetMessage(message, user);// выводит из чата твича в чат ddnet 
+    } catch (error) {
+    }
+    
 }
 
     // if(message.startsWith("!invite")){ // message === "teststr" for full
@@ -112,17 +119,8 @@ async function DDnetPoint(message){
     }
 }
 
-async function DDnetReklama(){ // POINT DDNET
-    try {
-        await PythonShell.run('ddnet_pipe.py', {args: [`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`]}, (err, results) => {
-            if (err) throw err;
-            //console.log('xyu')
-            console.log('Результаты выполнения Python-скрипта:', results);
-        });
-    }
-    catch(err){
-        console.log(err);
-    }
+async function DDnetReklama(){
+    DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`)
 }
 
 setInterval(
