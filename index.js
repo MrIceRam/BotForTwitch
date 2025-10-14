@@ -53,12 +53,12 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     // }
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
-    //console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
+    console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
     if (extra.reward.id === "1d04d1f0-215a-419b-9702-5171334ed879"){
         PythonShell.run('reverse.py')
     }
-    if (extra.reward.id === "bc2a2a91-e426-4a8a-a35d-31286c759288"){
-        console.log(user + "фоловнулся")
+    if (extra.reward.id === "686651fd-0fa2-4fb4-80ae-a70f9f2dab76"){
+        console.log(onReward.user_id + "фоловнулся")
         ComfyJS.Say("йоу спасибо за фоллов" + user)
         DDnetConsole("say" + user + "крутой")
     }
@@ -83,52 +83,31 @@ async function Nike(x){ // just see ';'
 }
 
 async function DDnetMessage(message, Sender=null){ // выводит из чата твича в чат ddnet 
-  if(await Nike(message)){
-      try {
-          await PythonShell.run('ddnet_pipe.py', {args: [`echo ==> "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
-              if (err) throw err;
-              console.log('Результаты выполнения Python-скрипта:', results);
-          });
-      }
-      catch(err){
-          console.log(err);
-      }
+    if(await Nike(message)){
+        DDnetConsole(`echo ==> "${Sender ? Sender : "No info"}: ${message}"`)
     }
     else
         console.log("лох перезапуск (;)");
 }
 
 async function DDnetInvite(message, Sender=null){
-  if(await Nike(message)){
-      try {
-          await PythonShell.run('ddnet_pipe.py', {args: [`say /invite "${message}";echo INVITE "${Sender ? Sender : "No info"}: ${message}"`]}, (err, results) => {
-              if (err) throw err;
-              console.log('Результаты выполнения Python-скрипта:', results);
-          });
-      }
-      catch(err){
-          console.log(err);
-      }
+    if(await Nike(message)){
+        DDnetConsole(`say /invite "${message}";echo INVITE "${Sender ? Sender : "No info"}: ${message}"`)
     }
-    else
+    else{
         console.log("лох перезапуск (;)");
+    }
 }
 
 async function DDnetPoint(message){
     console.log(`Attempting to get points for: ${message}`);
     try {
-        // PythonShell.run returns a promise that resolves to an array of output lines
         const results = await PythonShell.run('./commands/point.py', {args: [`${message}`]});
-
-        // Join the array of lines into a single string for output
         const pointsOutput = results.join(' ');
-
-        // Return the formatted message string
         return `${message} points: ${pointsOutput}`;
     }
     catch(err){
         console.error("Error in DDnetPoint while running point.py:", err);
-        // Ensure a string is always returned to prevent the TypeError in ComfyJS.Say()
         return `Sorry, I could not check points for ${message} right now.`;
     }
 }
@@ -156,7 +135,6 @@ setInterval(
 
 async function DDnetMap(message){
     try {
-
     const переменная = await DDMap.findPlayerAndMap(message);
     return переменная
     }
