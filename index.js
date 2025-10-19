@@ -9,12 +9,13 @@ const DDMap = require("./commands/DDMap.js");
 
 
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
-    const inviteCommands = ["invite", "invitе", "инвайт", "инвит"];
+    const inviteCommands = ["invite", "invitе"];
     const pointCommands = ["point", "points"];
-    const MapCommands = ["map", "maps", "карта", "мапа", "мапка","что за карта", "что за карта?"];
+    const MapCommands = ["map", "maps"];
     const Roll = ["roll"];
     
     if( inviteCommands.includes(command) ) {
+        //ComfyJS.Say("проебали");
         DDnetInvite(message, user);
     }
     if( pointCommands.includes(command) ) {
@@ -64,24 +65,7 @@ ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     if (extra.reward.id === "1d04d1f0-215a-419b-9702-5171334ed879"){
         PythonShell.run('reverse.py')
     }
-    if (extra.reward.id === "686651fd-0fa2-4fb4-80ae-a70f9f2dab76"){
-        console.log(onReward.user_id + "фоловнулся")
-        ComfyJS.Say("йоу спасибо за фоллов" + user)
-        DDnetConsole("say" + user + "крутой")
-    }
-} // юзер + название + цена
-
-// ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
-//     console.log("фолов " + user);
-//     ComfyJS.Say("qq @"+ user);
-// }
-
-// ComfyJS.onConnected = async(address, port, isFirstConnect) => {
-//  let channelRewards = await ComfyJS.GetChannelRewards(process.env.CLIEN, true ); //награды которые есть на канале и они которые его
-// if (channelRewards[0].title != "Test Reward"){
-//      Bounty.createRevarte();  
-// }
-// }
+} 
 
 async function Nike(x){ // just see ';'
     let a = true;
@@ -120,6 +104,7 @@ async function DDnetPoint(message){
 }
 
 async function DDnetReklama(){
+    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam`)
     DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`)
 }
 
@@ -149,7 +134,8 @@ async function DDnetConsole(x) {
         });
     }
     catch(err){
-        console.log(err);
+        console.log("err");
+        //console.log(err);
     }
 }
 
