@@ -7,7 +7,6 @@ const needed = require("./commands/Needed.js");
 const DDMap = require("./commands/DDMap.js");
 //const { use } = require('react');
 
-
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе"];
     const pointCommands = ["point", "points"];
@@ -44,7 +43,7 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     let x = answer.answer(message);
     if (x !== 0) {
-        console.log(`Written answer ${x}`);
+        console.log(`47 ${x}`);
         ComfyJS.Say(x);
     }
     try {
@@ -53,12 +52,6 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     }
     
 }
-
-    // if(message.startsWith("!invite")){ // message === "teststr" for full
-    // {
-    //     ComfyJS.Say("da")
-    // }
-    // }
 
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);

@@ -17,9 +17,9 @@ function answer(message){
         case "пизда":
             return "в анусе звезда";
         case "сосал":
-            return (random2(21) === 0 ? "Да" : "Нет")
+            return (random2(51) === 0 ? "да" : "Нет")
         case "сосал?":
-            return (random2(21) === 0 ? "Да" : "Нет") 
+            return (random2(51) === 0 ? "да" : "Нет") 
         default:
             return 0;
     }
