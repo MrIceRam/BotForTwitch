@@ -108,7 +108,7 @@ def block():
 
             # Wait for either timeout or unblock event
             start_time = time.time()
-            timeout = 60
+            timeout = 30
             
             while time.time() - start_time < timeout:
                 if check_unblock():

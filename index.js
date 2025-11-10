@@ -14,7 +14,7 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const Roll = ["roll"];
     
     if( inviteCommands.includes(command) ) {
-        //ComfyJS.Say("проебали");
+        //ComfyJS.Say("два трая без инвайта "+user);
         DDnetInvite(message, user);
     }
     if( pointCommands.includes(command) ) {
