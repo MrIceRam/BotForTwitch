@@ -21,5 +21,8 @@
     "comfy.js": "^1.1.29",
     "dotenv": "^17.2.2",
     "python-shell": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "^39.2.0"
   }
 }

@@ -15,7 +15,7 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     
     if( inviteCommands.includes(command) ) {
         //ComfyJS.Say("два трая без инвайта "+user);
-        DDnetInvite(message, user);
+        DDnetInvite(user, message, user);
     }
     if( pointCommands.includes(command) ) {
         const Points = await DDnetPoint(message);
@@ -74,9 +74,10 @@ async function DDnetMessage(message, Sender=null){ // выводит из чат
         console.log("лох перезапуск (;)");
 }
 
-async function DDnetInvite(message, Sender=null){
+async function DDnetInvite(user, message, Sender=null){
     if(await Nike(message)){
         DDnetConsole(`say /invite "${message}";echo INVITE "${Sender ? Sender : "No info"}: ${message}"`)
+        ComfyJS.Say(user + " инвайтнул " + message);
     }
     else{
         console.log("лох перезапуск (;)");
@@ -97,7 +98,7 @@ async function DDnetPoint(message){
 }
 
 async function DDnetReklama(){
-    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam`)
+    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! Стримит! twitch.tv/MrIceRam`)
     DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`)
 }
 
