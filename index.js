@@ -14,7 +14,7 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const Roll = ["roll"];
     
     if( inviteCommands.includes(command) ) {
-        //ComfyJS.Say("два трая без инвайта "+user);
+        //ComfyJS.Say("сегодня без инвайта "+user);
         DDnetInvite(user, message, user);
     }
     if( pointCommands.includes(command) ) {
@@ -132,7 +132,10 @@ async function DDnetConsole(x) {
         //console.log(err);
     }
 }
-
+ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
+    console.log("фолов " + user);
+    ComfyJS.Say("qq @"+ user);
+}
 async function init(){
     const tokensRefreshed = await needed.refreshAllTokens();
     if (tokensRefreshed)
