@@ -98,7 +98,7 @@ async function DDnetPoint(message){
 }
 
 async function DDnetReklama(){
-    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! Стримит! twitch.tv/MrIceRam`)
+    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Стримит! twitch.tv/MrIceRam`)
     DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`)
 }
 
@@ -132,10 +132,10 @@ async function DDnetConsole(x) {
         //console.log(err);
     }
 }
-ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
-    console.log("фолов " + user);
-    ComfyJS.Say("qq @"+ user);
-}
+// ComfyJS.onJoin = ( user, self, extra ) => {  // ¯\_(ツ)_/¯ Кто зашел в чат
+//     console.log("фолов " + user);
+//     ComfyJS.Say("qq @"+ user);
+// }
 async function init(){
     const tokensRefreshed = await needed.refreshAllTokens();
     if (tokensRefreshed)
