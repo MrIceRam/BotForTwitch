@@ -2,9 +2,12 @@ const Bounty = require('./commands/bounty.js');
 require('dotenv').config();
 const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
+const path = require('path');
 const answer = require("./commands/answer.js");
-const needed = require("./commands/Needed.js");
-const DDMap = require("./commands/DDMap.js");
+const needed = require("./services/tokens.js");
+const DDMap = require("./commands/ddmap.js");
+
+const py = (name) => path.join(__dirname, '..', 'python', name); // путь к скрипту в папке python/
 //const { use } = require('react');
 
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
@@ -56,7 +59,7 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
     if (extra.reward.id === "1d04d1f0-215a-419b-9702-5171334ed879"){
-        PythonShell.run('reverse.py')
+        PythonShell.run(py('reverse.py'))
     }
 } 
 
@@ -87,7 +90,7 @@ async function DDnetInvite(user, message, Sender=null){
 async function DDnetPoint(message){
     console.log(`Attempting to get points for: ${message}`);
     try {
-        const results = await PythonShell.run('./commands/point.py', {args: [`${message}`]});
+        const results = await PythonShell.run(py('point.py'), {args: [`${message}`]});
         const pointsOutput = results.join(' ');
         return `${message} points: ${pointsOutput}`;
     }
@@ -122,7 +125,7 @@ async function DDnetMap(message){
 
 async function DDnetConsole(x) {
     try {
-        await PythonShell.run('ddnet_pipe.py', {args: x}, (err, results) => {
+        await PythonShell.run(py('ddnet_pipe.py'), {args: x}, (err, results) => {
             if (err) throw err;
             console.log('DDnetConsole good')
         });

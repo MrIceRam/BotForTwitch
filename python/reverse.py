@@ -6,6 +6,9 @@ import threading
 import ctypes
 import sys
 
+# config/blocking.json рядом с папкой python/, не зависит от папки запуска
+CONFIG = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'blocking.json')
+
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
@@ -13,7 +16,7 @@ def is_admin():
         return False
 
 try:
-    with open('blocking.json', 'r') as file:
+    with open(CONFIG, 'r') as file:
         data = json.load(file)
     string = f"{data['reverse']}".lower()
     print(string)
@@ -26,7 +29,7 @@ except Exception as e:
 
 def check_unblock():
     try:
-        with open('blocking.json', 'r') as file:
+        with open(CONFIG, 'r') as file:
             data = json.load(file)
             return data['unblock'] == 'True'
     except FileNotFoundError:
@@ -36,10 +39,10 @@ def timer():
     if block_status == 'true':
         try:
             # Update reversetimer in blocking.json
-            with open('blocking.json', 'r') as file:
+            with open(CONFIG, 'r') as file:
                 data = json.load(file)
             data['reversetimer'] = 'True'
-            with open('blocking.json', 'w') as file:
+            with open(CONFIG, 'w') as file:
                 json.dump(data, file, indent=4)
             
             # Wait for either timeout or unblock event
@@ -50,12 +53,12 @@ def timer():
                 if check_unblock():
                     break
                 time.sleep(1)
-            with open('blocking.json', 'r') as file:
+            with open(CONFIG, 'r') as file:
                 data = json.load(file)
             
             # Reset reversetimer
             data['reversetimer'] = 'False'
-            with open('blocking.json', 'w') as file:
+            with open(CONFIG, 'w') as file:
                 json.dump(data, file, indent=4)
         except Exception as e:
             print(f"Error in timer: {e}")

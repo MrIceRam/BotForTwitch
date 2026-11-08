@@ -2,8 +2,9 @@
   "name": "botfortwitch",
   "version": "1.0.0",
   "description": "��#\u0000 \u0000B\u0000o\u0000t\u0000F\u0000o\u0000r\u0000T\u0000w\u0000i\u0000t\u0000c\u0000h\u0000\r\u0000 \u0000",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
