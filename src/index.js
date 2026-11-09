@@ -46,7 +46,7 @@ ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
 ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     let x = answer.answer(message);
     if (x !== 0) {
-        console.log(`47 ${x}`);
+        console.log(`49 ${x}`);
         ComfyJS.Say(x);
     }
     try {
@@ -102,7 +102,7 @@ async function DDnetPoint(message){
 
 async function DDnetReklama(){
     //DDnetConsole(`say ＭｒＩｃｅＲａｍ Стримит! twitch.tv/MrIceRam`)
-    DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite (ник), В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ ВАС ИНВАЙТНУЛ БОТ _!!!`)
+    DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite СВОЙНИК, В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ Бот ИНВАЙТНУЛ вас _!!!`)
 }
 
 setInterval(
@@ -119,7 +119,7 @@ async function DDnetMap(message){
     return переменная
     }
       catch(err){
-          console.log(err);
+          console.log(`DDnetMap ${err}`);
     }
 }
 

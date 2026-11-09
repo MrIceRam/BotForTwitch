@@ -81,4 +81,4 @@ config/             blocking.json — настройки реверса
 
 ## Авторы
 
-[MrIceRam](https://github.com/MrIceRam), 1Voix1
+[MrIceRam](https://github.com/MrIceRam), [1Voix1](https://github.com/1Voix1)

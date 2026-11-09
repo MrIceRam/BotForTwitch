@@ -14,4 +14,3 @@ def main(name):
         xyun9 = JSdata.get("points", {}).get("points", None)
     return xyun9
 print(main(argument_1))
-
