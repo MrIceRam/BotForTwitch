@@ -10,6 +10,35 @@ const DDMap = require("./commands/ddmap.js");
 const py = (name) => path.join(__dirname, '..', 'python', name); // путь к скрипту в папке python/
 //const { use } = require('react');
 
+// НА тесты надеюсь ничего не сломается 
+let currentGame = null; // текущая категория, null = оффлайн или неизвестно
+
+async function StreamCategory() {
+    try {
+        const { data } = await axios.get('https://api.twitch.tv/helix/streams', {
+            params: { user_login: process.env.TWITCHUSER },
+            headers: {
+                'Client-ID': process.env.CLIEN,
+                'Authorization': `Bearer ${process.env.OAUTH}`
+            },timeout: 10000
+        });
+        // если стрим оффлайн — data.data пустой массив
+        const newGame = data.data.length > 0 ? data.data[0].game_name : null;
+        if (newGame !== currentGame) {
+            console.log(`Категория стрима: ${newGame || 'оффлайн'}`);
+        }
+        currentGame = newGame;
+    } catch (err) {
+        console.log('Не удалось получить категорию стрима:', err.message);
+    }
+}
+
+function WhatGame() {
+    console.log(`37 категория ${currentGame}`);
+    return (currentGame || '').toLowerCase() === 'ddnet';
+}
+// КОНЕЦ ТЕСТА надеюсь ничего не сломалось
+
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе"];
     const pointCommands = ["point", "points"];
