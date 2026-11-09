@@ -32,17 +32,15 @@ npm install
 pip install -r requirements.txt
 ```
 
-Создайте в корне проекта файл `.env`:
+Файл `.env` заполняется сам. Запустите:
 
-```env
-TWITCHUSER=логин_канала
-OAUTH=access_token
-CLIEN=client_id
-REFRESH=refresh_token
+```bash
+npm run setup
 ```
 
-Токены берутся на [twitchtokengenerator.com](https://twitchtokengenerator.com) — войдите аккаунтом канала
-и выберите права `chat:read`, `chat:edit`, `channel:read:redemptions`.
+Откроется браузер ([twitchtokengenerator.com](https://twitchtokengenerator.com)) — войдите аккаунтом канала
+и нажмите «Authorize». Бот сам запишет в `.env` `TWITCHUSER`, `OAUTH`, `CLIEN` и `REFRESH`.
+Если `.env` нет, то же самое произойдёт при `npm start`.
 При каждом запуске бот сам обновляет `OAUTH`.
 
 > [!WARNING]

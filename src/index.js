@@ -151,10 +151,8 @@ if(process.env.TWITCHUSER && process.env.OAUTH && process.env.CLIEN && process.e
     init()
 }
 else{
-    console.log("THere no OAUTH tokens in .env file \n" +
-        "U need that tokens: \n" +
-        "TWITCHUSER= \n" +
-        "OAUTH= \n" +
-        "CLIEN= \n" +
-        "REFRESH= \n")
+    // .env пустой или неполный — заполняем автоматически через браузер
+    require('./setup.js').setup()
+        .then(() => init())
+        .catch((err) => console.log("Не удалось заполнить .env: " + err.message + "\nЗапустите: npm run setup"));
 }
