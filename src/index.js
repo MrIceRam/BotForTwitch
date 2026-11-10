@@ -1,5 +1,6 @@
 const Bounty = require('./commands/bounty.js');
 require('dotenv').config();
+const axios = require('axios');
 const ComfyJS = require("comfy.js");
 const { PythonShell } = require('python-shell');
 const path = require('path');
@@ -10,34 +11,46 @@ const DDMap = require("./commands/ddmap.js");
 const py = (name) => path.join(__dirname, '..', 'python', name); // путь к скрипту в папке python/
 //const { use } = require('react');
 
-// НА тесты надеюсь ничего не сломается 
-let currentGame = null; // текущая категория, null = оффлайн или неизвестно
+// ---------- Категория стрима ----------
+// От категории зависит, что бот делает с игрой:
+//   DDNet  — чат в игре, реклама, инвайт, реверс за баллы
+//   Dota 2 — сообщение в общий чат и способности за баллы, в DDNet НИЧЕГО не отправляется
+//   оффлайн или другая игра — ничего из этого
+// Для проверки без стрима добавь в .env строку FORCE_GAME=Dota 2 (или FORCE_GAME=DDNet)
+const DDNET_CATEGORIES = ['ddnet', 'ddracenetwork', 'ddrace network']; // точное название на Twitch бот пишет в консоль
+const DOTA_CATEGORIES = ['dota 2'];
+const CATEGORY_CHECK_MS = 60 * 1000; // категорию можно сменить посреди стрима — проверяем раз в минуту
+
+let currentGame = null; // null = оффлайн или ещё не узнали
 
 async function StreamCategory() {
     try {
-        const { data } = await axios.get('https://api.twitch.tv/helix/streams', {
-            params: { user_login: process.env.TWITCHUSER },
-            headers: {
-                'Client-ID': process.env.CLIEN,
-                'Authorization': `Bearer ${process.env.OAUTH}`
-            },timeout: 10000
-        });
-        // если стрим оффлайн — data.data пустой массив
-        const newGame = data.data.length > 0 ? data.data[0].game_name : null;
+        let newGame = process.env.FORCE_GAME || null;
+        if (!newGame) {
+            const { data } = await axios.get('https://api.twitch.tv/helix/streams', {
+                params: { user_login: process.env.TWITCHUSER },
+                headers: {
+                    'Client-ID': process.env.CLIEN,
+                    'Authorization': `Bearer ${process.env.OAUTH}`
+                },
+                timeout: 10000
+            });
+            // если стрим оффлайн — data.data пустой массив
+            newGame = data.data.length > 0 ? data.data[0].game_name : null;
+        }
         if (newGame !== currentGame) {
-            console.log(`Категория стрима: ${newGame || 'оффлайн'}`);
+            console.log(`Категория стрима: ${newGame || 'оффлайн'}${process.env.FORCE_GAME ? ' (FORCE_GAME из .env)' : ''}`);
         }
         currentGame = newGame;
     } catch (err) {
+        // старую категорию не сбрасываем: из-за одного сбоя сети стрим не должен "становиться оффлайн"
         console.log('Не удалось получить категорию стрима:', err.message);
     }
 }
 
-function WhatGame() {
-    console.log(`37 категория ${currentGame}`);
-    return (currentGame || '').toLowerCase() === 'ddnet';
-}
-// КОНЕЦ ТЕСТА надеюсь ничего не сломалось
+const isGame = (names) => names.includes((currentGame || '').toLowerCase());
+const isDDNet = () => isGame(DDNET_CATEGORIES);
+const isDota = () => isGame(DOTA_CATEGORIES);
 
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе"];
@@ -85,12 +98,45 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
     
 }
 
+const REWARDS = {
+    reverse: '1d04d1f0-215a-419b-9702-5171334ed879',
+    dotaChat: 'Сообщение в чат Доты',
+    dotaSkill: 'Способность в Доте',
+};
+
 ComfyJS.onReward = ( user, reward, cost, message, extra ) => {
     console.log( user + " redeemed " + reward + " for " + cost + " id " + extra.reward.id);
-    if (extra.reward.id === "1d04d1f0-215a-419b-9702-5171334ed879"){
-        PythonShell.run(py('reverse.py'))
+    const title = (reward || '').toLowerCase();
+
+    if (extra.reward.id === REWARDS.reverse){
+        if (isDDNet()) PythonShell.run(py('reverse.py'));
+        else ComfyJS.Say(`@${user} реверс работает только на стримах по DDNet`);
     }
-} 
+    else if (title === REWARDS.dotaChat.toLowerCase()) {
+        DotaAction(user, 'chat', message);
+    }
+    else if (title === REWARDS.dotaSkill.toLowerCase()) {
+        DotaAction(user, 'skill', message);
+    }
+}
+
+async function DotaAction(user, action, message) {
+    if (!isDota()) {
+        ComfyJS.Say(`@${user} это работает только на стримах по Доте`);
+        return;
+    }
+    try {
+        // dota.py сам проверяет, что Дота на экране, и отвечает строкой "OK ..." или "ERR причина"
+        const results = await PythonShell.run(py('dota.py'), { args: [action, message || ''] });
+        const answer = results.join(' ');
+        console.log(`dota.py: ${answer}`);
+        if (answer.startsWith('ERR')) ComfyJS.Say(`@${user} ${answer.slice(4)}`);
+    }
+    catch(err){
+        console.log(`dota.py упал: ${err.message}`);
+        ComfyJS.Say(`@${user} не получилось, что-то сломалось`);
+    }
+}
 
 async function Nike(x){ // just see ';'
     let a = true;
@@ -107,6 +153,10 @@ async function DDnetMessage(message, Sender=null){ // выводит из чат
 }
 
 async function DDnetInvite(user, message, Sender=null){
+    if (!isDDNet()) {
+        ComfyJS.Say(`@${user} инвайт работает только на стримах по DDNet`);
+        return;
+    }
     if(await Nike(message)){
         DDnetConsole(`say /invite "${message}";echo INVITE "${Sender ? Sender : "No info"}: ${message}"`)
         ComfyJS.Say(user + " инвайтнул " + message);
@@ -130,8 +180,8 @@ async function DDnetPoint(message){
 }
 
 async function DDnetReklama(){
-    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Стримит! twitch.tv/MrIceRam`)
-    DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite СВОЙНИК, В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ Бот ИНВАЙТНУЛ вас _!!!`)
+    DDnetConsole(`say Не чувак это было реально круто`)
+    //DDnetConsole(`say ＭｒＩｃｅＲａｍ Stream online! twitch.tv/MrIceRam !!!_ ДЛЯ ИНВАЙТА ПИШИТЕ !invite СВОЙНИК, В ЧАТЕ twitch.tv/MrIceRam, ЧТОБЫ Бот ИНВАЙТНУЛ вас _!!!`)
 }
 
 setInterval(
@@ -153,6 +203,9 @@ async function DDnetMap(message){
 }
 
 async function DDnetConsole(x) {
+    // Единственный путь в DDNet: эхо чата, реклама и инвайт идут через эту функцию.
+    // Не DDNet — не отправляем вообще, даже не запускаем ddnet_pipe.py.
+    if (!isDDNet()) return;
     try {
         await PythonShell.run(py('ddnet_pipe.py'), {args: x}, (err, results) => {
             if (err) throw err;
@@ -174,6 +227,8 @@ async function init(){
         console.log("Tokens refreshed")
     else
         console.log('Failed to refresh tokens')
+    await StreamCategory(); // узнаём категорию до первого сообщения из чата
+    setInterval(StreamCategory, CATEGORY_CHECK_MS);
     ComfyJS.Init(process.env.TWITCHUSER, process.env.OAUTH );
 }
 if(process.env.TWITCHUSER && process.env.OAUTH && process.env.CLIEN && process.env.REFRESH){
