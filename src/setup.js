@@ -6,7 +6,8 @@ const { exec } = require('child_process');
 
 const ENV_PATH = '.env'; // как и в dotenv / tokens.js — относительно папки запуска
 const API = 'https://twitchtokengenerator.com/api/v2';
-const SCOPES = ['chat:read', 'chat:edit', 'channel:read:redemptions', 'channel:manage:redemptions'];
+// channel:manage:broadcast — чтобы бот мог менять название стрима (инструмент «Название стрима»)
+const SCOPES = ['chat:read', 'chat:edit', 'channel:read:redemptions', 'channel:manage:redemptions', 'channel:manage:broadcast'];
 const POLL_MS = 5000;              // API просит не чаще раза в 5 секунд
 const TIMEOUT_MS = 10 * 60 * 1000; // ждём авторизацию до 10 минут
 
