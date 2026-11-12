@@ -47,6 +47,17 @@ async function getChannel() {
     return data.data[0] || null;
 }
 
+// Последние фолловеры канала, от новых к старым: [{ user_id, user_name, followed_at }].
+// Нужно право moderator:read:followers.
+async function getFollowers(first = 20) {
+    const { data } = await axios.get(`${HELIX}/channels/followers`, {
+        params: { broadcaster_id: await getBroadcasterId(), first },
+        headers: headers(),
+        timeout: TIMEOUT
+    });
+    return data.data || [];
+}
+
 const TITLE_MAX = 140; // ограничение Twitch
 
 async function setTitle(title) {
@@ -65,4 +76,4 @@ async function setTitle(title) {
     }
 }
 
-module.exports = { validate, getBroadcasterId, getStream, getChannel, setTitle, errText, TITLE_MAX };
+module.exports = { validate, getBroadcasterId, getStream, getChannel, getFollowers, setTitle, errText, TITLE_MAX };

@@ -1,0 +1,8 @@
+{
+    "alerts": {
+        "follow": true,
+        "sub": true,
+        "raid": true,
+        "cheer": true
+    }
+}

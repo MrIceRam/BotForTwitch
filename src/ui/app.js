@@ -57,6 +57,11 @@ function chatLines(e, w) {
         body = ` → «${e.reward}»${e.cost ? ` (${e.cost})` : ''}${e.text ? `: ${e.text}` : ''}`;
         headStyle = '1;33';
         bodyStyle = STYLE.yellow;
+    } else if (e.kind === 'event') { // фоллов, подписка, рейд, биты
+        head = `${e.icon || '★'} ${e.user}`;
+        body = ` ${e.text}`;
+        headStyle = '1;35';
+        bodyStyle = STYLE.magenta;
     } else {
         head = e.kind === 'bot' ? `${e.user} (бот)` : e.user;
         body = `: ${e.text}`;
@@ -94,7 +99,7 @@ function scrollView(list, toLines, h, scroll) {
     return { lines: lines.slice(Math.max(0, end - h), end), scroll: s };
 }
 
-function startUI({ streamPanel, menu, onExit, input = process.stdin, output = process.stdout }) {
+function startUI({ streamPanel, streamTitle, menu, onExit, input = process.stdin, output = process.stdout }) {
     const screen = new Screen(output);
     const ui = {
         stack: [{ title: 'Инструменты', items: menu }], // открытые меню: последнее — текущее
@@ -118,13 +123,15 @@ function startUI({ streamPanel, menu, onExit, input = process.stdin, output = pr
         ui.message = text ? { text, style, until: Date.now() + MESSAGE_MS } : null;
     }
 
-    async function run(fn) {
+    // goBack — после успешного действия вернуться в меню уровнем выше
+    async function run(fn, goBack = false) {
         if (ui.busy) return;
         ui.busy = true;
         setMessage('выполняю…', STYLE.yellow);
         render();
         try {
             const result = await fn();
+            if (goBack && ui.stack.length > 1) ui.stack.pop();
             setMessage(`✓ ${result || 'Готово'}`, STYLE.green);
         } catch (err) {
             setMessage(`✗ ${err.message}`, STYLE.red);
@@ -143,10 +150,11 @@ function startUI({ streamPanel, menu, onExit, input = process.stdin, output = pr
         if (item.items) {
             ui.stack.push({ title: resolve(item.title) || resolve(item.label), items: item.items });
             setMessage(null);
+            if (item.onOpen) run(item.onOpen); // например, загрузить очередь наград
         } else if (item.input) {
             openField(item);
         } else if (item.action) {
-            run(item.action);
+            run(item.action, item.back);
         }
     }
 
@@ -342,7 +350,12 @@ function startUI({ streamPanel, menu, onExit, input = process.stdin, output = pr
 
         let streamLines;
         try { streamLines = streamPanel(leftW - 2); } catch (err) { streamLines = [[[` ошибка панели: ${err.message}`, STYLE.red]]]; }
-        const streamH = Math.max(5, Math.min(streamLines.length + 2, bodyH - 12));
+        // инструментам — столько строк, сколько нужно (если тесно — без пустых строк), «Стрим» — остальное
+        const MIN_STREAM = 8;
+        let toolsLines = toolsContent(leftW - 2);
+        if (toolsLines.length + 2 + MIN_STREAM > bodyH) toolsLines = toolsLines.filter((line) => line.length);
+        const toolsNeeded = Math.min(toolsLines.length + 2, bodyH - MIN_STREAM);
+        const streamH = Math.max(MIN_STREAM, Math.min(streamLines.length + 2, bodyH - toolsNeeded));
         const toolsH = bodyH - streamH;
         const toolsTitle = ui.field ? ui.field.title : resolve(current().title);
 
@@ -356,8 +369,8 @@ function startUI({ streamPanel, menu, onExit, input = process.stdin, output = pr
         const errorCount = log.entries.reduce((n, e) => n + (e.level !== 'info'), 0);
 
         const left = [
-            ...box('Стрим', streamLines, leftW, streamH),
-            ...box(toolsTitle, toolsContent(leftW - 2), leftW, toolsH)
+            ...box(resolve(streamTitle) || 'Стрим', streamLines, leftW, streamH),
+            ...box(toolsTitle, toolsLines, leftW, toolsH)
         ];
         const right = [
             ...box(ui.scroll ? `Логи — прокручено, PgDn вниз` : 'Логи', logs.lines, rightW, logsH),

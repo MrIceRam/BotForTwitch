@@ -12,6 +12,8 @@ module.exports = {
     tokenExpiresAt: null,   // когда истечёт токен (мс, как Date.now())
     rewards: [],            // награды бота на Twitch: [{ title, cost, visible }]
     rewardsPaused: false,   // награды скрыты вручную (инструмент «Награды»)
+    queue: [],              // погашения наград бота, которые ждут решения: [{ id, rewardId, reward, cost, user, text, time }]
+    queueLoaded: false,     // очередь хоть раз загружали с Twitch
     ddnet: { ok: null },    // связь с клиентом DDNet: true / false / null — ещё не проверялась
     stats: { messages: 0, commands: 0, redemptions: 0, refunds: 0 } // за время работы бота
 };

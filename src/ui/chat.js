@@ -7,9 +7,11 @@ const MAX_ENTRIES = 500;
 //         'reward' — погашение награды за баллы
 const entries = [];
 const listeners = new Set();
+const colors = new Map(); // ник → цвет из Twitch (у погашений награды цвета нет — берём отсюда)
 
 function add(entry) {
     const e = { time: new Date(), kind: 'message', user: '', color: null, text: '', ...entry };
+    if (e.color && e.user) colors.set(e.user.toLowerCase(), e.color);
     entries.push(e);
     if (entries.length > MAX_ENTRIES) entries.splice(0, entries.length - MAX_ENTRIES);
     for (const fn of listeners) fn(e);
@@ -20,5 +22,6 @@ module.exports = {
     entries,
     add,
     onEntry: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
+    colorOf: (user) => colors.get(String(user || '').toLowerCase()) || null,
     clear: () => { entries.length = 0; }
 };

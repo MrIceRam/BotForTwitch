@@ -30,8 +30,7 @@ function streamPanel(bot, w) {
             lines.push([i === 0 ? label(name) : [' '.repeat(LABEL_W)], [l, style]]));
     };
 
-    row('Канал', [[state.channel || '—', STYLE.bold]]);
-
+    // канал — в заголовке панели (см. streamTitle в src/index.js)
     if (state.live) {
         row('Статус', [['● в эфире ', STYLE.green], [state.startedAt ? duration(now - state.startedAt) : '']]);
         row('Зрители', [[String(state.viewers ?? '—')]]);
@@ -40,7 +39,7 @@ function streamPanel(bot, w) {
     }
 
     row('Категория', [[state.game || '—'], [state.forcedGame ? '  (вручную)' : '', STYLE.yellow]]);
-    rowWrapped('Название', state.title || '—', '', 3);
+    rowWrapped('Название', state.title || '—', '', 2);
 
     row('Чат', state.chatConnected ? [['подключён', STYLE.green]] : [['нет связи', STYLE.red]]);
 
@@ -61,8 +60,14 @@ function streamPanel(bot, w) {
     else if (visible.length) rowWrapped('Награды', visible.join(', '), STYLE.green, 2);
     else row('Награды', [['все скрыты', STYLE.gray]]);
 
-    row('Сообщения', [[String(state.stats.messages)], [`  команд ${state.stats.commands}`, STYLE.gray]]);
-    row('Погашения', [[String(state.stats.redemptions)], [`  возвращено ${state.stats.refunds}`, STYLE.gray]]);
+    const ov = bot.overlay.status();
+    if (ov.error) row('Оверлей', [['не запустился: ' + ov.error, STYLE.red]]);
+    else if (!ov.running) row('Оверлей', [['запускается…', STYLE.gray]]);
+    else row('Оверлей', [[ov.url.replace('http://', '')], ov.clients ? [' · OBS ✓', STYLE.green] : [' · ждёт OBS', STYLE.gray]]);
+
+    // с запуска бота: сообщений в чате, погашений наград бота, сколько раз вернули баллы
+    // (без эмодзи: часть терминалов рисует их другой ширины, и рамка съезжает)
+    row('Сообщения', [[String(state.stats.messages)], [` · наград ${state.stats.redemptions} · возвр. ${state.stats.refunds}`, STYLE.gray]]);
     row('Токен', [[state.tokenExpiresAt ? `ещё ${minutesLeft(state.tokenExpiresAt - now)}` : '—', STYLE.gray]]);
 
     return lines;

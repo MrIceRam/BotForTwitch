@@ -3,7 +3,9 @@
 //
 // Чтобы добавить свой инструмент, добавьте объект в список:
 //   { label: 'Подпись', action: async () => 'что написать после выполнения' }
+//   { label: 'Подпись', action: ..., back: true }   — после выполнения вернуться в меню выше
 //   { label: 'Подменю', items: () => [ ...такие же пункты ] }
+//   { label: 'Подменю', items: ..., onOpen: async () => 'загружено' }   — сделать что-то при открытии подменю
 //   { label: 'Ввод текста', input: {
 //         prompt: 'Подсказка над полем',
 //         initial: () => 'текст в поле при открытии',
@@ -63,6 +65,27 @@ module.exports = (bot) => [
         }
     },
     {
+        // погашения, которые сработали и ждут решения: вернуть баллы или оставить
+        label: () => `Очередь наград${bot.state.queueLoaded || bot.state.queue.length ? `: ${bot.state.queue.length}` : ''}`,
+        title: 'Очередь наград — ждут решения',
+        onOpen: () => bot.loadQueue(),
+        items: () => {
+            const queue = bot.state.queue;
+            if (!queue.length) return [{ label: 'Очередь пуста — обновить', action: () => bot.loadQueue() }];
+            const list = queue.slice(0, 7).map((item) => ({
+                label: `${item.user} — ${item.reward}${item.text ? `: ${item.text}` : ''}`,
+                title: `${item.user}: ${item.reward}`,
+                items: () => [
+                    { label: 'Вернуть баллы', action: () => bot.decide(item, true), back: true },
+                    { label: 'Выполнено (баллы остаются)', action: () => bot.decide(item, false), back: true }
+                ]
+            }));
+            list.push({ label: queue.length > 7 ? `Обновить (ещё ${queue.length - 7})` : 'Обновить', action: () => bot.loadQueue() });
+            list.push({ label: 'Отметить все выполненными', action: () => bot.fulfillAll() });
+            return list;
+        }
+    },
+    {
         label: () => (bot.state.rewardsPaused ? 'Награды скрыты — показать' : 'Награды: скрыть все'),
         action: () => bot.setRewardsPaused(!bot.state.rewardsPaused)
     },
@@ -75,6 +98,25 @@ module.exports = (bot) => [
             { label: 'Как на Twitch', action: () => bot.setForcedGame(null) }
         ]
     },
+    {
+        label: 'Оверлей для OBS',
+        title: 'Оверлей наград для OBS',
+        items: () => [
+            { label: 'Показать тестовую награду', action: () => bot.testOverlay() },
+            { label: 'Скопировать ссылку для OBS', action: () => bot.overlay.copyLink() },
+            { label: 'Скопировать ссылку на ленту', action: () => bot.overlay.copyLink(true) },
+            { label: 'Открыть в браузере', action: () => bot.overlay.openInBrowser() },
+            {
+                label: 'Алерты: фолловы, подписки, рейды',
+                title: 'Алерты на оверлее',
+                items: () => bot.overlay.alertKinds().map(({ kind, name }) => ({
+                    label: () => `${name}: ${bot.overlay.alertEnabled(kind) ? 'вкл' : 'выкл'}`,
+                    action: () => bot.overlay.toggleAlert(kind)
+                }))
+            }
+        ]
+    },
+    { label: 'Итоги стрима', action: () => bot.saveSummary() },
     { label: 'Обновить токен сейчас', action: () => bot.refreshToken() },
     { label: 'Очистить логи', action: () => bot.clearLogs() }
 ];

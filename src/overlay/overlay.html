@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Награды — оверлей для OBS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!--
+  Оверлей для OBS: награды за баллы, фолловы, подписки, рейды, биты и плашка реверса.
+  Открывается ботом по ссылке http://localhost:7777
+  Настройки — прямо в ссылке, через ? и &:
+    mode=feed      лента последних событий вместо всплывающих карточек
+    mode=effects   только плашка реверса (если хотите поставить её в другое место сцены)
+    effects=0      без плашки реверса
+    count=5        сколько наград в ленте
+    duration=7     сколько секунд висит карточка
+    sound=0        без звука (по умолчанию звук есть у карточек и нет у ленты)
+    volume=0.35    громкость звука от 0 до 1
+    align=left     карточка слева (center — по центру, right — справа)
+    valign=bottom  карточка снизу (по умолчанию сверху)
+  Пример: http://localhost:7777/?duration=10&align=left
+-->
+<style>
+    :root {
+        --accent: 145, 70, 255;   /* цвет награды (r, g, b) — задаётся для каждой карточки */
+        --user: #ffffff;          /* цвет ника — как в чате Twitch */
+        --font: 'Rubik', 'Segoe UI', system-ui, 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+        margin: 0; height: 100%; overflow: hidden;
+        background: transparent; color: #fff;
+        font-family: var(--font);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    #stage {
+        position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        gap: 14px; padding: 30px;
+    }
+    body.left #stage { align-items: flex-start; }
+    body.right #stage { align-items: flex-end; }
+    body.bottom #stage { justify-content: flex-end; }
+
+    /* ---------- всплывающая карточка ---------- */
+    .card {
+        position: relative; display: flex; align-items: center; gap: 24px;
+        width: 780px; max-width: 100%;
+        padding: 22px 32px 26px 22px; border-radius: 26px; overflow: hidden;
+        background: linear-gradient(135deg, rgba(32, 26, 52, .95) 0%, rgba(14, 12, 24, .95) 100%);
+        border: 2px solid rgba(var(--accent), .9);
+        box-shadow: 0 0 36px rgba(var(--accent), .45), 0 0 100px rgba(var(--accent), .2), 0 22px 50px rgba(0, 0, 0, .55);
+        animation: card-in .8s cubic-bezier(.18, 1.35, .4, 1) both;
+    }
+    .card.out { animation: card-out .55s cubic-bezier(.6, 0, .8, .2) both; }
+    .card::before { /* свечение цвета награды слева */
+        content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none;
+        background: radial-gradient(120% 160% at 0% 50%, rgba(var(--accent), .32), transparent 60%);
+    }
+    .card::after { /* блик, который один раз пробегает по карточке */
+        content: ''; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 40%; pointer-events: none;
+        background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .2), transparent);
+        transform: skewX(-20deg);
+        animation: shine 1.5s .6s ease-out both;
+    }
+
+    .icon {
+        position: relative; flex: 0 0 108px; height: 108px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 56px; line-height: 1;
+        background: radial-gradient(circle at 35% 30%, rgba(var(--accent), 1), rgba(var(--accent), .45) 72%);
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, .08), 0 0 34px rgba(var(--accent), .75);
+        animation: icon-pop .9s .15s cubic-bezier(.2, 1.7, .4, 1) both;
+    }
+    .icon::after { /* расходящееся кольцо */
+        content: ''; position: absolute; top: -7px; right: -7px; bottom: -7px; left: -7px; border-radius: 50%;
+        border: 3px solid rgba(var(--accent), .9);
+        animation: ring 1.8s .5s ease-out infinite;
+    }
+
+    .body { position: relative; flex: 1; min-width: 0; }
+    .label {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 15px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+        color: rgba(var(--accent), 1); filter: brightness(1.45);
+    }
+    .test { padding: 2px 8px; border-radius: 6px; font-size: 12px; letter-spacing: .1em; color: #111; background: #ffd43b; filter: none; }
+    .who {
+        margin-top: 6px; font-size: 36px; font-weight: 800; line-height: 1.15;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .who .user { color: var(--user); text-shadow: 0 0 20px rgba(var(--accent), .65); }
+    .who .verb { margin-left: 10px; font-size: 26px; font-weight: 500; color: rgba(255, 255, 255, .72); }
+    .reward { margin-top: 4px; display: flex; align-items: center; gap: 14px; font-size: 28px; font-weight: 700; }
+    .reward .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cost {
+        flex: none; display: inline-flex; align-items: center; gap: 7px;
+        padding: 3px 13px 3px 8px; border-radius: 999px; font-size: 20px; font-weight: 700;
+        background: rgba(var(--accent), .25); border: 1px solid rgba(var(--accent), .65);
+    }
+    .cost svg { width: 19px; height: 19px; }
+    .text {
+        margin-top: 12px; padding: 9px 15px; border-radius: 12px;
+        font-size: 23px; font-weight: 500; line-height: 1.3; color: #f1f1f5;
+        background: rgba(255, 255, 255, .07); border-left: 4px solid rgba(var(--accent), .95);
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
+    }
+    .status { display: none; margin-top: 12px; font-size: 19px; font-weight: 700; color: #ffb4b4; }
+    .card.refunded { border-color: rgba(255, 92, 92, .95); box-shadow: 0 0 36px rgba(255, 92, 92, .45), 0 22px 50px rgba(0, 0, 0, .55); }
+    .card.refunded .status { display: block; animation: fade-in .4s both; }
+
+    .bar { /* сколько ещё будет висеть карточка */
+        position: absolute; left: 0; bottom: 0; height: 5px; width: 100%;
+        background: linear-gradient(90deg, rgba(var(--accent), 1), rgba(255, 255, 255, .85));
+        transform-origin: left center;
+    }
+    .spark {
+        position: absolute; left: 76px; top: 50%; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%;
+        background: #fff; box-shadow: 0 0 12px 3px rgba(var(--accent), 1);
+        animation: spark 1.1s ease-out both;
+    }
+
+    .reward .plain { font-weight: 500; color: rgba(255, 255, 255, .88); }
+
+    /* ---------- плашка эффекта с обратным отсчётом (реверс) ---------- */
+    #effects {
+        position: absolute; left: 0; right: 0; bottom: 26px; padding: 0 30px;
+        display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none;
+    }
+    body.bottom #effects { bottom: auto; top: 26px; }
+    body.left #effects { align-items: flex-start; }
+    body.right #effects { align-items: flex-end; }
+    body.effects #effects { top: 0; bottom: 0; justify-content: center; }
+    .effect {
+        position: relative; display: flex; align-items: center; gap: 16px; overflow: hidden;
+        padding: 12px 26px 16px 16px; border-radius: 999px;
+        background: linear-gradient(90deg, rgba(var(--accent), .32), rgba(14, 12, 24, .95) 40%);
+        border: 2px solid rgba(var(--accent), .9);
+        box-shadow: 0 0 28px rgba(var(--accent), .5), 0 12px 30px rgba(0, 0, 0, .5);
+        animation: effect-in .6s cubic-bezier(.2, 1.4, .4, 1) both;
+    }
+    .effect.out { animation: effect-out .45s ease-in both; }
+    .effect .eicon { font-size: 36px; line-height: 1; animation: spin 2.4s linear infinite; }
+    .effect .etitle { font-size: 22px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .effect .euser { font-size: 16px; color: rgba(255, 255, 255, .7); }
+    .effect .etime {
+        min-width: 78px; text-align: right; font-size: 32px; font-weight: 800;
+        font-variant-numeric: tabular-nums; color: rgba(var(--accent), 1); filter: brightness(1.35);
+    }
+    .effect.urgent .etime { animation: pulse .5s ease-in-out infinite alternate; }
+    .effect .ebar {
+        position: absolute; left: 0; bottom: 0; height: 4px; width: 100%;
+        background: rgba(var(--accent), 1); transform-origin: left center; transition: transform .2s linear;
+    }
+
+    /* ---------- лента последних событий (?mode=feed) ---------- */
+    body.feed #stage { align-items: stretch; gap: 10px; padding: 14px; }
+    .row {
+        position: relative; display: flex; align-items: center; gap: 14px; overflow: hidden;
+        padding: 11px 16px; border-radius: 16px;
+        background: linear-gradient(90deg, rgba(var(--accent), .28), rgba(14, 12, 24, .92) 45%);
+        border-left: 5px solid rgba(var(--accent), 1);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .4);
+        animation: row-in .55s cubic-bezier(.2, 1.3, .4, 1) both;
+    }
+    .row .ricon { flex: none; font-size: 30px; line-height: 1; }
+    .row .rbody { flex: 1; min-width: 0; }
+    .row .rtop { display: flex; align-items: baseline; gap: 10px; font-size: 21px; font-weight: 700; white-space: nowrap; }
+    .row .rtop .user { color: var(--user); overflow: hidden; text-overflow: ellipsis; }
+    .row .rtop .rtitle { color: rgba(255, 255, 255, .85); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+    .row .rtext { margin-top: 2px; font-size: 17px; color: rgba(255, 255, 255, .75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row .cost { font-size: 16px; padding: 2px 10px 2px 6px; }
+    .row .cost svg { width: 15px; height: 15px; }
+    .row.refunded { opacity: .55; border-left-color: rgba(255, 92, 92, 1); }
+    .row.old { animation: row-out .5s ease-in both; }
+
+    /* ---------- подсказка, когда страницу открыли в обычном браузере ---------- */
+    body.preview { background: repeating-conic-gradient(#1b1b22 0% 25%, #22222b 0% 50%) 50% / 40px 40px; }
+    #help {
+        display: none; position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+        width: min(680px, calc(100% - 32px)); padding: 18px 22px; border-radius: 16px;
+        background: rgba(10, 10, 14, .92); border: 1px solid rgba(255, 255, 255, .12);
+        font-size: 15px; line-height: 1.5; color: #d6d6de;
+    }
+    body.preview #help { display: block; }
+    #help b { color: #fff; }
+    #help code { padding: 1px 6px; border-radius: 6px; background: rgba(255, 255, 255, .1); color: #fff; }
+    #help .row-btns { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+    #help button {
+        font: inherit; font-weight: 700; color: #fff; cursor: pointer;
+        padding: 8px 16px; border: 0; border-radius: 10px; background: #9146ff;
+    }
+    #help button:hover { background: #a970ff; }
+    #help .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: #ff5c5c; }
+    #help .dot.on { background: #51cf66; }
+
+    @keyframes card-in { from { opacity: 0; transform: translateY(-34px) scale(.86); } to { opacity: 1; transform: none; } }
+    body.bottom .card { animation-name: card-in-bottom; }
+    @keyframes card-in-bottom { from { opacity: 0; transform: translateY(34px) scale(.86); } to { opacity: 1; transform: none; } }
+    @keyframes card-out { to { opacity: 0; transform: translateY(-18px) scale(.94); } }
+    @keyframes shine { to { left: 135%; } }
+    @keyframes icon-pop { from { transform: scale(0) rotate(-35deg); } to { transform: none; } }
+    @keyframes ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
+    @keyframes spark { 0% { opacity: 0; transform: translate(0, 0) scale(1); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.2); } }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes row-in { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+    @keyframes row-out { to { opacity: 0; transform: translateX(-30px); } }
+    @keyframes effect-in { from { opacity: 0; transform: translateY(20px) scale(.8); } to { opacity: 1; transform: none; } }
+    @keyframes effect-out { to { opacity: 0; transform: translateY(14px) scale(.9); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="effects"></div>
+
+<div id="help">
+    <b>Это оверлей для OBS.</b> Здесь фон в клетку — в OBS он будет прозрачным.<br>
+    В OBS: <b>Источники → + → Браузер</b>, в поле URL вставьте <code id="link"></code>
+    <div class="row-btns">
+        <button id="testBtn">Показать тестовую награду</button>
+        <span><span class="dot" id="dot"></span><span id="conn">нет связи с ботом — бот запущен?</span></span>
+    </div>
+</div>
+
+<script>
+(function () {
+    var params = new URLSearchParams(location.search);
+    var MODE = ['feed', 'effects'].indexOf(params.get('mode')) >= 0 ? params.get('mode') : 'alert';
+    var EFFECTS = MODE !== 'feed' && params.get('effects') !== '0';
+    var DURATION = Math.max(2, Number(params.get('duration')) || 7) * 1000;
+    var COUNT = Math.max(1, Number(params.get('count')) || 5);
+    var SOUND = params.has('sound') ? params.get('sound') !== '0' : MODE === 'alert';
+    var VOLUME = params.has('volume') ? Math.min(1, Math.max(0, Number(params.get('volume')))) : 0.35;
+    var DEFAULT_COLOR = '#9146ff'; // фиолетовый Twitch — для наград без своего цвета
+
+    var stage = document.getElementById('stage');
+    document.body.classList.add(MODE, params.get('align') || 'center', params.get('valign') || 'top');
+    if (!window.obsstudio) document.body.classList.add('preview'); // открыто не в OBS — показываем подсказку
+    document.getElementById('link').textContent = location.origin + location.pathname + location.search;
+
+    // ---------- помощники ----------
+    function rgb(hex) {
+        var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+        if (!m) m = /^#?([0-9a-f]{6})$/i.exec(DEFAULT_COLOR);
+        return [0, 2, 4].map(function (i) { return parseInt(m[1].substr(i, 2), 16); }).join(', ');
+    }
+    function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined) e.textContent = text; // только текст: что бы ни написал зритель, это не станет кодом
+        return e;
+    }
+    function pointsIcon() { // значок баллов канала
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 20 20');
+        svg.innerHTML = '<circle cx="10" cy="10" r="8" fill="none" stroke="#fff" stroke-width="2"/><path d="M10 5.5a4.5 4.5 0 0 1 4.5 4.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>';
+        return svg;
+    }
+    function cost(value) {
+        var c = el('span', 'cost');
+        c.appendChild(pointsIcon());
+        c.appendChild(document.createTextNode(Number(value || 0).toLocaleString('ru-RU')));
+        return c;
+    }
+    function colorize(node, item) {
+        node.style.setProperty('--accent', rgb(item.color));
+        if (item.userColor) node.style.setProperty('--user', item.userColor);
+    }
+
+    // ---------- звук: короткий перезвон без файлов ----------
+    var audio = null;
+    function chime() {
+        if (!SOUND || VOLUME <= 0) return;
+        try {
+            audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+            var now = audio.currentTime;
+            [[784, 0], [1175, 0.11], [1568, 0.22]].forEach(function (n) {
+                var osc = audio.createOscillator();
+                var gain = audio.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = n[0];
+                gain.gain.setValueAtTime(0.0001, now + n[1]);
+                gain.gain.linearRampToValueAtTime(VOLUME, now + n[1] + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + n[1] + 0.7);
+                osc.connect(gain);
+                gain.connect(audio.destination);
+                osc.start(now + n[1]);
+                osc.stop(now + n[1] + 0.75);
+            });
+        } catch (e) { /* без звука */ }
+    }
+
+    // ---------- всплывающие карточки ----------
+    var queue = [];
+    var showing = null;   // { item, node }
+    var pendingRefunds = {};
+
+    function card(item) {
+        var node = el('div', 'card');
+        colorize(node, item);
+        var icon = el('div', 'icon', item.icon || '🎁');
+        var body = el('div', 'body');
+        var isReward = !item.kind || item.kind === 'reward';
+        var label = el('div', 'label', item.label || 'Награда за баллы');
+        if (item.test) label.appendChild(el('span', 'test', 'тест'));
+        var who = el('div', 'who');
+        who.appendChild(el('span', 'user', item.user));
+        who.appendChild(el('span', 'verb', item.verb || 'купил(а)'));
+        body.appendChild(label);
+        body.appendChild(who);
+        if (isReward) { // награда: «название» и цена в баллах
+            var reward = el('div', 'reward');
+            reward.appendChild(el('span', 'title', '«' + item.reward + '»'));
+            reward.appendChild(cost(item.cost));
+            body.appendChild(reward);
+        } else if (item.title) { // фоллов, подписка, рейд, биты: подробности
+            var details = el('div', 'reward');
+            details.appendChild(el('span', 'title plain', item.title));
+            body.appendChild(details);
+        }
+        if (item.text) body.appendChild(el('div', 'text', item.text));
+        body.appendChild(el('div', 'status', ''));
+        node.appendChild(icon);
+        node.appendChild(body);
+        node.appendChild(el('div', 'bar'));
+        return node;
+    }
+
+    function markRefund(node, reason) {
+        node.classList.add('refunded');
+        node.querySelector('.status').textContent = '↩ Не сработало' + (reason ? ': ' + reason : '') + ' — баллы вернулись';
+    }
+
+    function sparks(node) {
+        for (var i = 0; i < 18; i++) {
+            var s = el('span', 'spark');
+            var angle = Math.random() * Math.PI * 2;
+            var dist = 55 + Math.random() * 95;
+            s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+            s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+            s.style.animationDelay = (0.25 + Math.random() * 0.25) + 's';
+            node.appendChild(s);
+        }
+    }
+
+    function next() {
+        if (showing || !queue.length) return;
+        var item = queue.shift();
+        var node = card(item);
+        showing = { item: item, node: node };
+        stage.appendChild(node);
+        if (pendingRefunds[item.id] !== undefined) markRefund(node, pendingRefunds[item.id]);
+        sparks(node);
+        chime();
+        var duration = queue.length >= 2 ? Math.max(3500, DURATION * 0.6) : DURATION; // очередь большая — показываем быстрее
+        var bar = node.querySelector('.bar');
+        bar.style.transition = 'transform ' + duration + 'ms linear';
+        requestAnimationFrame(function () { requestAnimationFrame(function () { bar.style.transform = 'scaleX(0)'; }); });
+        setTimeout(function () {
+            node.classList.add('out');
+            setTimeout(function () {
+                node.remove();
+                showing = null;
+                next();
+            }, 550);
+        }, duration);
+    }
+
+    // ---------- лента ----------
+    var rows = {};
+
+    function row(item) {
+        var node = el('div', 'row');
+        colorize(node, item);
+        node.appendChild(el('div', 'ricon', item.icon || '🎁'));
+        var body = el('div', 'rbody');
+        var top = el('div', 'rtop');
+        var isReward = !item.kind || item.kind === 'reward';
+        top.appendChild(el('span', 'user', item.user));
+        top.appendChild(el('span', 'rtitle', isReward ? item.reward : [item.verb, item.title].filter(Boolean).join(' · ')));
+        if (isReward) top.appendChild(cost(item.cost));
+        body.appendChild(top);
+        var text = item.refunded ? '↩ не сработало, баллы вернулись' : item.text;
+        if (text) body.appendChild(el('div', 'rtext', text));
+        node.appendChild(body);
+        if (item.refunded) node.classList.add('refunded');
+        return node;
+    }
+
+    function addRow(item, animate) {
+        var node = row(item);
+        if (!animate) node.style.animation = 'none';
+        rows[item.id] = node;
+        stage.insertBefore(node, stage.firstChild);
+        var all = stage.querySelectorAll('.row:not(.old)');
+        for (var i = COUNT; i < all.length; i++) {
+            (function (old) {
+                old.classList.add('old');
+                setTimeout(function () { old.remove(); }, 500);
+            })(all[i]);
+        }
+        if (animate) chime();
+    }
+
+    // ---------- события от бота ----------
+    var dot = document.getElementById('dot');
+    var conn = document.getElementById('conn');
+    var events = new EventSource('/events');
+    events.onopen = function () { dot.className = 'dot on'; conn.textContent = 'бот подключён'; };
+    events.onerror = function () { dot.className = 'dot'; conn.textContent = 'нет связи с ботом — бот запущен?'; };
+
+    events.addEventListener('history', function (e) {
+        if (MODE !== 'feed') return;
+        stage.innerHTML = '';
+        rows = {};
+        JSON.parse(e.data).slice(-COUNT).forEach(function (item) { addRow(item, false); });
+    });
+
+    events.addEventListener('alert', function (e) {
+        var item = JSON.parse(e.data);
+        if (MODE === 'feed') { addRow(item, true); return; }
+        if (MODE === 'effects') return;
+        queue.push(item);
+        next();
+    });
+
+    // ---------- плашка с обратным отсчётом (реверс) ----------
+    var effectsBox = document.getElementById('effects');
+    var activeEffects = {};
+
+    function showEffect(effect) {
+        if (!EFFECTS || activeEffects[effect.id]) return;
+        var node = el('div', 'effect');
+        colorize(node, effect);
+        node.appendChild(el('div', 'eicon', effect.icon || '⏳'));
+        var mid = el('div', 'emid');
+        mid.appendChild(el('div', 'etitle', effect.title));
+        if (effect.user) mid.appendChild(el('div', 'euser', 'от ' + effect.user));
+        node.appendChild(mid);
+        var time = el('div', 'etime', '');
+        var bar = el('div', 'ebar');
+        node.appendChild(time);
+        node.appendChild(bar);
+        effectsBox.appendChild(node);
+        var total = effect.seconds * 1000;
+        function tick() {
+            var left = Math.max(0, effect.endsAt - Date.now());
+            var sec = Math.ceil(left / 1000);
+            time.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+            bar.style.transform = 'scaleX(' + (left / total) + ')';
+            node.classList.toggle('urgent', left > 0 && left < 5000);
+            if (left <= 0) hideEffect(effect.id);
+        }
+        activeEffects[effect.id] = { node: node, timer: setInterval(tick, 200) };
+        tick();
+    }
+
+    function hideEffect(id) {
+        var active = activeEffects[id];
+        if (!active) return;
+        clearInterval(active.timer);
+        delete activeEffects[id];
+        active.node.classList.add('out');
+        setTimeout(function () { active.node.remove(); }, 450);
+    }
+
+    events.addEventListener('effect', function (e) { showEffect(JSON.parse(e.data)); });
+    events.addEventListener('effect-end', function (e) { hideEffect(JSON.parse(e.data).id); });
+
+    events.addEventListener('refund', function (e) {
+        var data = JSON.parse(e.data);
+        if (MODE === 'feed') {
+            var node = rows[data.id];
+            if (!node) return;
+            node.classList.add('refunded');
+            var text = node.querySelector('.rtext') || node.querySelector('.rbody').appendChild(el('div', 'rtext'));
+            text.textContent = '↩ не сработало, баллы вернулись';
+            return;
+        }
+        if (showing && showing.item.id === data.id) markRefund(showing.node, data.reason);
+        else pendingRefunds[data.id] = data.reason; // ещё в очереди — отметим, когда дойдёт
+    });
+
+    document.getElementById('testBtn').onclick = function () { fetch('/test', { method: 'POST' }); };
+})();
+</script>
+</body>
+</html>

@@ -116,16 +116,21 @@ function syncRewards(rewards, game) {
     return run;
 }
 
-// Вернуть зрителю баллы: отменённое погашение Twitch возвращает сам.
+// Решение по погашению из очереди: 'CANCELED' — баллы возвращаются зрителю, 'FULFILLED' — выполнено, баллы остаются.
 // Работает только для наград, созданных ботом, и пока погашение ещё в очереди.
+async function setRedemptionStatus(rewardId, redemptionId, status) {
+    const broadcaster_id = await getBroadcasterId();
+    await axios.patch(`${HELIX_REWARDS}/redemptions`, { status }, {
+        headers: auth(),
+        params: { broadcaster_id, reward_id: rewardId, id: redemptionId },
+        timeout: 10000
+    });
+}
+
+// Вернуть зрителю баллы (отменённое погашение Twitch возвращает сам). true — получилось
 async function refund(rewardId, redemptionId) {
     try {
-        const broadcaster_id = await getBroadcasterId();
-        await axios.patch(`${HELIX_REWARDS}/redemptions`, { status: 'CANCELED' }, {
-            headers: auth(),
-            params: { broadcaster_id, reward_id: rewardId, id: redemptionId },
-            timeout: 10000
-        });
+        await setRedemptionStatus(rewardId, redemptionId, 'CANCELED');
         return true;
     } catch (err) {
         console.error(`Не удалось вернуть баллы: ${errText(err)}`);
@@ -133,4 +138,31 @@ async function refund(rewardId, redemptionId) {
     }
 }
 
-module.exports = { syncRewards, refund };
+// Погашения наград бота, которые ждут решения (статус UNFULFILLED), от старых к новым.
+// Twitch отдаёт очередь только для наград, созданных ботом.
+async function pendingRedemptions(rewards) {
+    const broadcaster_id = await getBroadcasterId();
+    const { data } = await axios.get(HELIX_REWARDS, {
+        headers: auth(),
+        params: { broadcaster_id, only_manageable_rewards: true },
+        timeout: 10000
+    });
+    const ours = new Set(Object.values(rewards).map((def) => def.title.toLowerCase()));
+    const result = [];
+    for (const r of data.data.filter((x) => ours.has(x.title.toLowerCase()))) {
+        const { data: page } = await axios.get(`${HELIX_REWARDS}/redemptions`, {
+            headers: auth(),
+            params: { broadcaster_id, reward_id: r.id, status: 'UNFULFILLED', sort: 'OLDEST', first: 50 },
+            timeout: 10000
+        });
+        for (const x of page.data) {
+            result.push({
+                id: x.id, rewardId: r.id, reward: r.title, cost: r.cost,
+                user: x.user_name || x.user_login, text: x.user_input || '', time: new Date(x.redeemed_at).getTime()
+            });
+        }
+    }
+    return result.sort((a, b) => a.time - b.time);
+}
+
+module.exports = { syncRewards, refund, setRedemptionStatus, pendingRedemptions, errText };
