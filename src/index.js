@@ -23,11 +23,13 @@ const relative = (file) => path.relative(path.join(__dirname, '..'), file).repla
 // От категории зависит, что бот делает с игрой:
 //   DDNet  — чат в игре, реклама, !invite / !points / !map, награда «Реверс»
 //   Dota 2 — награды «Сообщение в чат Доты» и «Способность в Доте», в DDNet НИЧЕГО не отправляется
+//   CS2    — «Выкинь оружие», «Сообщение в чат CS2», «Достань нож», «Осмотри оружие», «Реверс»
 //   оффлайн или другая игра — ничего из этого (всегда работают только !roll и автоответы)
 // Награды бот показывает для текущей игры и скрывает, когда категория меняется (см. REWARDS ниже)
 // Для проверки без стрима: строка FORCE_GAME=Dota 2 (или FORCE_GAME=DDNet) в .env или инструмент «Категория» в интерфейсе
 const DDNET_CATEGORIES = ['ddnet', 'ddracenetwork', 'ddrace network']; // точное название на Twitch бот пишет в консоль
 const DOTA_CATEGORIES = ['dota 2'];
+const CS2_CATEGORIES = ['counter-strike', 'counter-strike 2', 'counter-strike: global offensive']; // на Twitch CS2 — «Counter-Strike»
 const CATEGORY_CHECK_MS = 60 * 1000; // категорию можно сменить посреди стрима — проверяем раз в минуту
 
 let currentGame = null;   // null = оффлайн или ещё не узнали
@@ -87,7 +89,7 @@ async function StreamCategory() {
 function helpText() {
     const commands = [...(isDDNet() ? ['!invite <ник>', '!points <ник>', '!map [ник]'] : []), '!roll', '!help'];
     const rewards = state.rewardsPaused ? [] : Object.values(REWARDS)
-        .filter((r) => r.game === gameKey())
+        .filter((r) => availableNow(r))
         .map((r) => `«${r.title}» (${r.cost})`);
     return `Команды: ${commands.join(', ')}.` + (rewards.length ? ` Награды за баллы: ${rewards.join(', ')}.` : '');
 }
@@ -95,7 +97,10 @@ function helpText() {
 const isGame = (names) => names.includes((currentGame || '').toLowerCase());
 const isDDNet = () => isGame(DDNET_CATEGORIES);
 const isDota = () => isGame(DOTA_CATEGORIES);
-const gameKey = () => isDDNet() ? 'ddnet' : isDota() ? 'dota' : null; // ключ game в REWARDS
+const isCS2 = () => isGame(CS2_CATEGORIES);
+const gameKey = () => isDDNet() ? 'ddnet' : isDota() ? 'dota' : isCS2() ? 'cs2' : null; // ключ game в REWARDS
+// награда работает в текущей игре? (game в REWARDS — одна игра или список игр)
+const availableNow = (def) => [].concat(def.game).includes(gameKey());
 
 ComfyJS.onCommand = async( user, command, message, flags, extra ) => {
     const inviteCommands = ["invite", "invitе"];
@@ -167,11 +172,16 @@ ComfyJS.onChat = ( user, message, flags, self, extra ) => {        //test
 // Награды за баллы канала. Бот сам создаёт и показывает награды текущей игры (game) и скрывает их,
 // когда категория меняется, стрим заканчивается или бот выключается через Ctrl+C.
 // Скрывает, а не удаляет: так очередь погашений сохраняется и баллы можно вернуть позже.
-// Узнаёт награду по названию — оно должно быть уникальным на канале. Цену, описание и кулдаун меняйте здесь.
-// icon и color — как награда выглядит на оверлее в OBS (эмодзи и цвет карточки).
+// Узнаёт награду по названию — оно должно быть уникальным на канале.
+//   cost                    — цена в баллах
+//   global_cooldown_seconds — кулдаун: сколько секунд награду нельзя купить снова (после любого зрителя)
+//   game                    — в какой игре награда видна: 'ddnet', 'dota', 'cs2' или список ['ddnet', 'cs2']
+//   icon и color            — как награда выглядит на оверлее в OBS (эмодзи и цвет карточки)
+//   key                     — (CS2) какую клавишу нажать
+// Поменяли — на Twitch обновится при следующем запуске бота или смене категории.
 const REWARDS = {
     reverse: {
-        game: 'ddnet',
+        game: ['ddnet', 'cs2'],
         title: 'Реверс управления',
         icon: '🔄',
         color: '#ff5c8a',
@@ -198,6 +208,48 @@ const REWARDS = {
         prompt: 'Напиши одну букву: q w e r d f — бот нажмёт эту способность',
         is_user_input_required: true,
         global_cooldown_seconds: 10
+    },
+
+    // ---- CS2 ----
+    cs2Drop: {
+        game: 'cs2',
+        title: 'Выкинь оружие',
+        icon: '🔫',
+        color: '#ff922b',
+        cost: 10,
+        prompt: 'Стример выкинет оружие, которое держит в руках',
+        global_cooldown_seconds: 60,
+        key: 'g'
+    },
+    cs2Chat: {
+        game: 'cs2',
+        title: 'Сообщение в чат CS2',
+        icon: '💬',
+        color: '#74c0fc',
+        cost: 10,
+        prompt: 'Напиши сообщение — бот отправит его в общий чат CS2 (до 120 символов)',
+        is_user_input_required: true,
+        global_cooldown_seconds: 15
+    },
+    cs2Knife: {
+        game: 'cs2',
+        title: 'Достань нож',
+        icon: '🔪',
+        color: '#ced4da',
+        cost: 10,
+        prompt: 'Стример достанет нож',
+        global_cooldown_seconds: 15,
+        key: '3'
+    },
+    cs2Inspect: {
+        game: 'cs2',
+        title: 'Осмотри оружие',
+        icon: '👀',
+        color: '#69db7c',
+        cost: 10,
+        prompt: 'Стример осмотрит оружие',
+        global_cooldown_seconds: 15,
+        key: 'f'
     }
 };
 
@@ -221,6 +273,8 @@ ComfyJS.onReward = async ( user, reward, cost, message, extra ) => {
     if (is('reverse')) error = await Reverse(user);
     else if (is('dotaChat')) error = await DotaAction('chat', message);
     else if (is('dotaSkill')) error = await DotaAction('skill', message);
+    else if (is('cs2Chat')) error = await Cs2Action('chat', message);
+    else if (is('cs2Drop') || is('cs2Knife') || is('cs2Inspect')) error = await Cs2Action('key', def.key);
     else return; // награда не бота — не трогаем
 
     state.stats.redemptions++;
@@ -242,7 +296,7 @@ const REVERSE_SECONDS = 30; // сколько длится реверс — ка
 
 // Возвращает null, если реверс включился, иначе — причину для зрителя
 async function Reverse(user) {
-    if (!isDDNet()) return 'реверс работает только на стримах по DDNet';
+    if (!availableNow(REWARDS.reverse)) return 'реверс работает только на стримах по DDNet и CS2';
     // на оверлее — плашка с обратным отсчётом, пока идёт реверс
     const effect = overlay.effectStart({ icon: REWARDS.reverse.icon, title: 'Реверс управления', user, seconds: REVERSE_SECONDS, color: REWARDS.reverse.color });
     try {
@@ -274,6 +328,23 @@ async function DotaAction(action, message) {
     }
     catch(err){
         console.error(`dota.py упал: ${err.message}`);
+        return 'не получилось, что-то сломалось';
+    }
+}
+
+// Возвращает null, если действие в CS2 выполнено, иначе — причину для зрителя.
+// action: 'chat' — сообщение в общий чат (arg — текст), 'key' — нажать клавишу (arg — клавиша из REWARDS)
+async function Cs2Action(action, arg) {
+    if (!isCS2()) return 'это работает только на стримах по CS2';
+    try {
+        // cs2.py сам проверяет, что CS2 на экране, и отвечает строкой "OK ..." или "ERR причина"
+        const results = await PythonShell.run(py('cs2.py'), { args: [action, arg || ''] });
+        const answer = results.join(' ');
+        console.log(`cs2.py: ${answer}`);
+        return answer.startsWith('ERR') ? answer.slice(4) : null;
+    }
+    catch(err){
+        console.error(`cs2.py упал: ${err.message}`);
         return 'не получилось, что-то сломалось';
     }
 }
@@ -463,6 +534,7 @@ const bot = {
     ad,
     isDDNet: () => isDDNet(),
     isDota: () => isDota(),
+    isCS2: () => isCS2(),
     async setTitle(text) {
         const title = String(text).trim();
         if (!title) throw new Error('Название пустое');

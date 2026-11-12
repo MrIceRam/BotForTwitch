@@ -68,7 +68,7 @@ async function doSync(rewards, game) {
 
     for (const def of Object.values(rewards)) {
         const current = existing.get(def.title.toLowerCase());
-        const wanted = def.game === game;
+        const wanted = [].concat(def.game).includes(game); // game в REWARDS — одна игра или список
         visible[def.title] = !!(current && current.is_enabled);
         try {
             if (wanted && !current) {

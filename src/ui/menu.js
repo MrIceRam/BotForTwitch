@@ -95,6 +95,7 @@ module.exports = (bot) => [
         items: () => [
             { label: 'DDNet', action: () => bot.setForcedGame('DDNet') },
             { label: 'Dota 2', action: () => bot.setForcedGame('Dota 2') },
+            { label: 'CS2', action: () => bot.setForcedGame('Counter-Strike') },
             { label: 'Как на Twitch', action: () => bot.setForcedGame(null) }
         ]
     },
